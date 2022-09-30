@@ -29,6 +29,9 @@ public class JaxwsTestHandler implements SOAPHandler<SOAPMessageContext> {
     private int messageCount;
     private int getHeadersCount;
 
+    public JaxwsTestHandler() {
+    }
+    
     public int getGetHeadersCount() {
         return getHeadersCount;
     }

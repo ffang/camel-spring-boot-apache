@@ -16,41 +16,54 @@
  */
 package org.apache.camel.component.cxf.soap.springboot;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import javax.xml.namespace.QName;
 import javax.xml.ws.Endpoint;
-
+import javax.xml.ws.handler.Handler;
 
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.DataFormat;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
+import org.apache.camel.wsdl_first.PersonImpl;
 import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
-import org.apache.hello_world_soap_http.GreeterImpl;
 
 @DirtiesContext
 @CamelSpringBootTest
 @SpringBootTest(classes = {
-                           CamelAutoConfiguration.class, CXFGreeterEnrichTest.class,
-                           CXFGreeterEnrichTest.TestConfiguration.class,
+                           CamelAutoConfiguration.class, CxfWsdlFirstPayloadModeTest.class,
+                           CxfWsdlFirstPayloadModeTest.TestConfiguration.class,
                            CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CXFGreeterEnrichTest extends AbstractCXFGreeterRouterTest {
+public class CxfWsdlFirstPayloadModeTest extends AbstractCxfWsdlFirstTest {
 
-    private static String backServiceAddress = "/CXFGreeterEnrichTest/SoapContext/SoapPort";
+    private QName serviceName = QName.valueOf("{http://camel.apache.org/wsdl-first}PersonService");
+    private QName endpointName = QName.valueOf("{http://camel.apache.org/wsdl-first}soap");
     protected Endpoint endpoint;
     
-    
+    @BeforeEach
+    public void startService() {
+        Object implementor = new PersonImpl();
+        String address = "/CxfWsdlFirstPayloadModeTest/PersonService/";
+        endpoint = Endpoint.publish(address, implementor);
+    }
 
     @AfterEach
     public void stopService() {
@@ -58,26 +71,22 @@ public class CXFGreeterEnrichTest extends AbstractCXFGreeterRouterTest {
             endpoint.stop();
         }
     }
-
-    @BeforeEach
-    public void startService() {
-        Object implementor = new GreeterImpl();
-        endpoint = Endpoint.publish(backServiceAddress, implementor);
-    }
-
     
     @Bean
     private CxfEndpoint routerEndpoint() {
         CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.GreeterImpl.class);
-        cxfEndpoint.setAddress("/CXFGreeterEnrichTest/CamelContext/RouterPort");
-        cxfEndpoint.setSkipFaultLogging(true);
-        //This interceptor will force the CXF server send the XML start document to client
-        cxfEndpoint.getOutInterceptors().
-            add(new WriteXmlDeclarationInterceptor());
+        cxfEndpoint.setServiceNameAsQName(serviceName);
+        cxfEndpoint.setEndpointNameAsQName(endpointName);
+        cxfEndpoint.setServiceClass(org.apache.camel.wsdl_first.Person.class);
+        cxfEndpoint.setAddress("/CxfWsdlFirstPayloadModeTest/RouterService/");
+        cxfEndpoint.setWsdlURL("classpath:person.wsdl");
         Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("publishedEndpointUrl", "http://www.simple.com/services/test");
+        properties.put("schema-validation-enabled", true);
         cxfEndpoint.setProperties(properties);
+        List<Handler> handlers = new ArrayList<Handler>();
+        handlers.add(fromHandler);
+        cxfEndpoint.setHandlers(handlers);
+        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
         return cxfEndpoint;
     }
     
@@ -86,10 +95,26 @@ public class CXFGreeterEnrichTest extends AbstractCXFGreeterRouterTest {
         CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
         cxfEndpoint.setServiceNameAsQName(serviceName);
         cxfEndpoint.setEndpointNameAsQName(endpointName);
-        cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
-        cxfEndpoint.setAddress("http://localhost:8080/services" + backServiceAddress);
-        cxfEndpoint.setWsdlURL("testutils/hello_world.wsdl");
+        cxfEndpoint.setServiceClass(org.apache.camel.wsdl_first.Person.class);
+        cxfEndpoint.setAddress("http://localhost:8080/services/CxfWsdlFirstPayloadModeTest/PersonService/");
+        List<Handler> handlers = new ArrayList<Handler>();
+        handlers.add(toHandler);
+        cxfEndpoint.setHandlers(handlers);
+        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
         return cxfEndpoint;
+    }
+    
+    @Override
+    @Test
+    public void testInvokingServiceWithCamelProducer() throws Exception {
+        // this test does not apply to PAYLOAD mode
+    }
+
+    @Override
+    protected void verifyJaxwsHandlers(JaxwsTestHandler fromHandler, JaxwsTestHandler toHandler) {
+        assertEquals(2, fromHandler.getFaultCount());
+        assertEquals(4, fromHandler.getMessageCount());
+        assertEquals(1, toHandler.getFaultCount());
     }
 
     // *************************************
@@ -106,7 +131,8 @@ public class CXFGreeterEnrichTest extends AbstractCXFGreeterRouterTest {
                 public void configure() {
                     errorHandler(noErrorHandler());
                     from("cxf:bean:routerEndpoint")
-                            .enrich().simple("ref:serviceEndpoint");
+                            .to("cxf:bean:serviceEndpoint");
+                                        
                 }
             };
         }

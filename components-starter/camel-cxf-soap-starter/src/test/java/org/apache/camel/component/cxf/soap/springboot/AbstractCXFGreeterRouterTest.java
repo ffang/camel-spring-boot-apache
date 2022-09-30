@@ -59,7 +59,7 @@ public abstract class AbstractCXFGreeterRouterTest {
                                                + "<faultType>NoSuchCodeLitFault</faultType></testDocLitFault>"
                                                + "</soap:Body></soap:Envelope>";
     
-    private String routerAddress = "http://localhost:8080/services/" 
+    protected String routerAddress = "http://localhost:8080/services/" 
         + getClass().getSimpleName() + "/CamelContext/RouterPort";
     
     protected final QName serviceName = new QName("http://apache.org/hello_world_soap_http", "SOAPService");
