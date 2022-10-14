@@ -43,8 +43,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -152,14 +150,6 @@ public class CxfTimeoutTest {
     @Test
     public void testInvokingJaxWsServerWithCxfEndpoint() throws Exception {
         sendTimeOutMessage("cxf://bean:springEndpoint");
-    }
-
-    @Test
-    public void testInvokingJaxWsServerWithCxfEndpointWithConfigurer() throws Exception {
-        Exchange reply = sendJaxWsMessage("cxf://bean:springEndpoint?cxfConfigurer=#myConfigurer");
-        // we don't expect the exception here
-        assertFalse(reply.isFailed(), "We don't expect the exception here");
-        assertEquals("Greet Hello World!", reply.getMessage().getBody(String.class), "Get a wrong response");
     }
 
     @Test

@@ -112,8 +112,7 @@ public class CxfMessageHeadersRelayTest {
     private static QName SERVICENAME = QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}HeaderService");
     
     static int port = CXFTestSupport.getPort1();
-    //static int port = 8080;
-    
+        
 
     private static final Logger LOG = LoggerFactory.getLogger(CxfMessageHeadersRelayTest.class);
 
