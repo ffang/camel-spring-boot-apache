@@ -22,6 +22,7 @@ import javax.xml.ws.Service;
 
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.RuntimeCamelException;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.http.base.HttpOperationFailedException;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 
@@ -38,6 +39,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
@@ -59,21 +61,19 @@ public abstract class AbstractCXFGreeterRouterTest {
                                                + "<faultType>NoSuchCodeLitFault</faultType></testDocLitFault>"
                                                + "</soap:Body></soap:Envelope>";
     
-    protected String routerAddress = "http://localhost:8080/services/" 
+    protected String routerAddress = "http://localhost:" + port + "/services/" 
         + getClass().getSimpleName() + "/CamelContext/RouterPort";
     
     protected final QName serviceName = new QName("http://apache.org/hello_world_soap_http", "SOAPService");
     protected final QName routerPortName = new QName("http://apache.org/hello_world_soap_http", "RouterPort");
     protected final QName endpointName = new QName("http://apache.org/hello_world_soap_http", "SoapPort");
 
+    static int port = CXFTestSupport.getPort1();
     
     @Autowired
     ProducerTemplate template;
 
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
+    
 
     @Test
     public void testInvokingServiceFromCXFClient() throws Exception {
@@ -121,4 +121,12 @@ public abstract class AbstractCXFGreeterRouterTest {
         assertTrue(response.indexOf("http://www.simple.com/services/test") > 0, "Can't find the right service location.");
     }
 
+    @Configuration
+    public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+    }
 }

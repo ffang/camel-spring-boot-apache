@@ -54,6 +54,7 @@ import org.apache.hello_world_soap_http.GreeterImpl;
 @SpringBootTest(classes = {
                            CamelAutoConfiguration.class, CxfPayloadProviderRouterTest.class,
                            CxfPayloadProviderRouterTest.TestConfiguration.class,
+                           AbstractCXFGreeterRouterTest.TestConfiguration.class,
                            CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CxfPayloadProviderRouterTest extends AbstractCXFGreeterRouterTest {
@@ -77,33 +78,35 @@ public class CxfPayloadProviderRouterTest extends AbstractCXFGreeterRouterTest {
     }
 
     
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setAddress("/CxfPayloadProviderRouterTest/CamelContext/RouterPort");
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("jaxws.provider.interpretNullAsOneway", true);
-        cxfEndpoint.setProperties(properties);
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        cxfEndpoint.setSynchronous(true);
-        return cxfEndpoint;
-    }
     
-    @Bean
-    private CxfEndpoint serviceEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setAddress("http://localhost:8080/services" + backServiceAddress);
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        cxfEndpoint.setSynchronous(true);
-        return cxfEndpoint;
-    }
-
     // *************************************
     // Config
     // *************************************
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setAddress("/CxfPayloadProviderRouterTest/CamelContext/RouterPort");
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("jaxws.provider.interpretNullAsOneway", true);
+            cxfEndpoint.setProperties(properties);
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            cxfEndpoint.setSynchronous(true);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint serviceEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setAddress("http://localhost:" + port + "/services" + backServiceAddress);
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            cxfEndpoint.setSynchronous(true);
+            return cxfEndpoint;
+        }
+
 
         @Bean
         public RouteBuilder routeBuilder() {
@@ -123,7 +126,7 @@ public class CxfPayloadProviderRouterTest extends AbstractCXFGreeterRouterTest {
     @Test
     public void testPublishEndpointUrl() throws Exception {
         final String path = getClass().getSimpleName() + "/CamelContext/RouterPort/" + getClass().getSimpleName();
-        String response = template.requestBody("http://localhost:8080/services/" + path
+        String response = template.requestBody("http://localhost:" + port + "/services/" + path
                                                + "?wsdl",
                 null, String.class);
         assertTrue(response.indexOf(path) > 0, "Can't find the right service location.");
@@ -133,7 +136,7 @@ public class CxfPayloadProviderRouterTest extends AbstractCXFGreeterRouterTest {
     public void testInvokeGreetMeOverProvider() throws Exception {
         Service service = Service.create(serviceName);
         service.addPort(routerPortName, "http://schemas.xmlsoap.org/soap/",
-                "http://localhost:8080/services/"
+                "http://localhost:" + port + "/services/"
                     + getClass().getSimpleName()
                     + "/CamelContext/RouterPort");
         Greeter greeter = service.getPort(routerPortName, Greeter.class);

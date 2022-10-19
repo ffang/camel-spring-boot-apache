@@ -23,8 +23,6 @@ import org.apache.camel.spring.boot.CamelAutoConfiguration;
 
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
-import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
@@ -37,15 +35,14 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
                            CamelAutoConfiguration.class,
                            CxfPayloadConsumerNamespaceOnEnvelopeStreamCacheTest.class,
                            CxfPayloadConsumerNamespaceOnEnvelopeStreamCacheTest.TestConfiguration.class,
-                           CxfAutoConfiguration.class
+                           CxfAutoConfiguration.class,
+                           CxfPayloadConsumerNamespaceOnEnvelopeTest.EndpointConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CxfPayloadConsumerNamespaceOnEnvelopeStreamCacheTest
     extends CxfPayloadConsumerNamespaceOnEnvelopeTest {
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
+        
+   
 
     // *************************************
     // Config

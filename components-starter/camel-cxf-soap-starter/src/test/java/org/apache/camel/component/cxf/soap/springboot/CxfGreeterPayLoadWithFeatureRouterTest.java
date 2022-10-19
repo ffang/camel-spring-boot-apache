@@ -20,6 +20,7 @@ import javax.xml.ws.Endpoint;
 
 
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.TestCxfFeature;
 import org.apache.camel.component.cxf.common.DataFormat;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
@@ -41,6 +42,7 @@ import org.apache.hello_world_soap_http.GreeterImpl;
 @SpringBootTest(classes = {
                            CamelAutoConfiguration.class, CxfGreeterPayLoadWithFeatureRouterTest.class,
                            CxfGreeterPayLoadWithFeatureRouterTest.TestConfiguration.class,
+                           AbstractCXFGreeterRouterTest.TestConfiguration.class,
                            CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CxfGreeterPayLoadWithFeatureRouterTest extends AbstractCXFGreeterRouterTest {
@@ -64,35 +66,37 @@ public class CxfGreeterPayLoadWithFeatureRouterTest extends AbstractCXFGreeterRo
     }
 
     
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.GreeterImpl.class);
-        cxfEndpoint.setAddress("/CxfGreeterPayLoadWithFeatureRouterTest/CamelContext/RouterPort");
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        cxfEndpoint.setPublishedEndpointUrl("http://www.simple.com/services/test");
-        return cxfEndpoint;
-    }
     
-    @Bean
-    private CxfEndpoint serviceEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(serviceName);
-        cxfEndpoint.setEndpointNameAsQName(endpointName);
-        cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
-        cxfEndpoint.setAddress("http://localhost:8080/services" + backServiceAddress);
-        cxfEndpoint.setWsdlURL("testutils/hello_world.wsdl");
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        cxfEndpoint.getFeatures().add(new TestCxfFeature());
-        return cxfEndpoint;
-    }
-
     // *************************************
     // Config
     // *************************************
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.GreeterImpl.class);
+            cxfEndpoint.setAddress("/CxfGreeterPayLoadWithFeatureRouterTest/CamelContext/RouterPort");
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            cxfEndpoint.setPublishedEndpointUrl("http://www.simple.com/services/test");
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint serviceEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(serviceName);
+            cxfEndpoint.setEndpointNameAsQName(endpointName);
+            cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
+            cxfEndpoint.setAddress("http://localhost:" + port + "/services" + backServiceAddress);
+            cxfEndpoint.setWsdlURL("testutils/hello_world.wsdl");
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            cxfEndpoint.getFeatures().add(new TestCxfFeature());
+            return cxfEndpoint;
+        }
+
 
         @Bean
         public RouteBuilder routeBuilder() {

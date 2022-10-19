@@ -23,6 +23,7 @@ import org.w3c.dom.Document;
 
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.common.DataFormat;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
@@ -48,6 +49,7 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 @SpringBootTest(classes = {
                            CamelAutoConfiguration.class, CxfPayloadConsumerNamespaceOnEnvelopeTest.class,
                            CxfPayloadConsumerNamespaceOnEnvelopeTest.TestConfiguration.class,
+                           CxfPayloadConsumerNamespaceOnEnvelopeTest.EndpointConfiguration.class,
                            CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CxfPayloadConsumerNamespaceOnEnvelopeTest {
@@ -68,32 +70,10 @@ public class CxfPayloadConsumerNamespaceOnEnvelopeTest {
 
     @Autowired
     ProducerTemplate template;
-
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
     
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setAddress("/GetToken/SoapContext/SoapPort");
-        cxfEndpoint.setServiceNameAsQName(serviceName);
-        cxfEndpoint.setWsdlURL("GetToken.wsdl");
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint serviceEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setAddress("http://localhost:8080/services/GetToken/SoapContext/SoapPort");
-        cxfEndpoint.setServiceNameAsQName(serviceName);
-        cxfEndpoint.setWsdlURL("GetToken.wsdl");
-        cxfEndpoint.setDataFormat(DataFormat.RAW);
-        return cxfEndpoint;
-    }
+    static int port = CXFTestSupport.getPort1();
 
+    
     
     @Test
     public void testInvokeRouter() {
@@ -111,6 +91,7 @@ public class CxfPayloadConsumerNamespaceOnEnvelopeTest {
     @Configuration
     public class TestConfiguration {
 
+                
         @Bean
         public RouteBuilder routeBuilder() {
             return new RouteBuilder() {
@@ -130,6 +111,39 @@ public class CxfPayloadConsumerNamespaceOnEnvelopeTest {
                 }
             };
         }
+        
+        
+        
+        
     }
 
+    @Configuration
+    public class EndpointConfiguration {
+        
+        @Bean
+        ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setAddress("/GetToken/SoapContext/SoapPort");
+            cxfEndpoint.setServiceNameAsQName(serviceName);
+            cxfEndpoint.setWsdlURL("GetToken.wsdl");
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint serviceEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setAddress("http://localhost:" + port + "/services/GetToken/SoapContext/SoapPort");
+            cxfEndpoint.setServiceNameAsQName(serviceName);
+            cxfEndpoint.setWsdlURL("GetToken.wsdl");
+            cxfEndpoint.setDataFormat(DataFormat.RAW);
+            return cxfEndpoint;
+        }
+
+    }
 }
