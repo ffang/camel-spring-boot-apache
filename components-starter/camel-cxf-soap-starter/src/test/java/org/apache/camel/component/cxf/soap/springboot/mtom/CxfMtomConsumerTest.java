@@ -64,8 +64,8 @@ import org.slf4j.LoggerFactory;
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CxfMtomConsumerTest {
 
-    protected static final String MTOM_ENDPOINT_ADDRESS = "/CxfMtomConsumerTest/jaxws-mtom/hello";
-    protected static final String MTOM_ENDPOINT_URI = "cxf://" + MTOM_ENDPOINT_ADDRESS
+    protected String MTOM_ENDPOINT_ADDRESS = "/CxfMtomConsumerTest/jaxws-mtom/hello";
+    protected String MTOM_ENDPOINT_URI = "cxf://" + MTOM_ENDPOINT_ADDRESS
                                                       + "?serviceClass=org.apache.camel.cxf.mtom_feature.Hello&properties.mtom-enabled=true";
 
     private static final Logger LOG = LoggerFactory.getLogger(CxfMtomConsumerTest.class);

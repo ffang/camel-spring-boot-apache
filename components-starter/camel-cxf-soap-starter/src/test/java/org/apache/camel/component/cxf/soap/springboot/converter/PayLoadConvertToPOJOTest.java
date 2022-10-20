@@ -62,25 +62,6 @@ public class PayLoadConvertToPOJOTest {
     
     static int port = CXFTestSupport.getPort1();
 
-
-    
-    
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory(port);
-    }
-    
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setAddress(getClass().getSimpleName() + "/CamelContext/RouterPort");
-        cxfEndpoint.setServiceClass(org.apache.camel.non_wrapper.Person.class);
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        return cxfEndpoint;
-    }
-    
-    
-    
     @Test
     public void testClient() throws Exception {
 
@@ -106,6 +87,21 @@ public class PayLoadConvertToPOJOTest {
     @Configuration
     public class TestConfiguration {
 
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        @Bean
+        public CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setAddress("/PayLoadConvertToPOJOTest/CamelContext/RouterPort");
+            cxfEndpoint.setServiceClass(org.apache.camel.non_wrapper.Person.class);
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            return cxfEndpoint;
+        }
+        
+        
         @Bean
         public RouteBuilder routeBuilder() {
             return new RouteBuilder() {

@@ -47,11 +47,14 @@ import org.slf4j.LoggerFactory;
 @CamelSpringBootTest
 @SpringBootTest(classes = {
                            CamelAutoConfiguration.class, CxfJavaMtomProducerPayloadTest.class,
-                           CxfAutoConfiguration.class
+                           CxfAutoConfiguration.class,
+                           CxfMtomConsumerTest.TestConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CxfJavaMtomProducerPayloadTest extends CxfMtomConsumerTest {
-
-    protected static final String MTOM_ENDPOINT_URI_MTOM_ENABLE = MTOM_ENDPOINT_URI
+    protected String MTOM_ENDPOINT_URI_MTOM_ENABLE = "cxf://http://localhost:8080/services" 
+                                                                  + MTOM_ENDPOINT_ADDRESS
+                                                                  + "?serviceClass=org.apache.camel.cxf.mtom_feature.Hello"
+                                                                  + "&properties.mtom-enabled=true"
                                                                   + "&defaultOperationName=Detail";
     private static final Logger LOG = LoggerFactory.getLogger(CxfJavaMtomProducerPayloadTest.class);
 

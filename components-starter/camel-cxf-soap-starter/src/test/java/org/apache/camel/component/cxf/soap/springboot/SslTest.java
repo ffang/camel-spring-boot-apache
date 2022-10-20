@@ -153,6 +153,9 @@ public class SslTest {
             return new GreeterImpl();
         }
         
+        /*
+         * This is the way how to configure TLS/SSL with Bean 
+         */
         @Bean
         public ServletWebServerFactory servletWebServerFactory() throws UnknownHostException {
             UndertowServletWebServerFactory undertowWebServerFactory 
