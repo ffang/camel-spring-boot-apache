@@ -31,6 +31,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.attachment.AttachmentMessage;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.cxf.mtom_feature.Hello;
 import org.apache.camel.cxf.mtom_feature.HelloService;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
@@ -72,10 +73,9 @@ public class CxfMtomConsumerTest {
 
     private final QName serviceName = new QName("http://apache.org/camel/cxf/mtom_feature", "HelloService");
 
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
+    static int port = CXFTestSupport.getPort1();
+    
+    
 
     
     private Hello getPort() {
@@ -84,15 +84,15 @@ public class CxfMtomConsumerTest {
 
         HelloService service = new HelloService(wsdl, serviceName);
         assertNotNull(service, "Service is null");
-        Hello port = service.getHelloPort();
+        Hello hello = service.getHelloPort();
 
-        ((BindingProvider) port).getRequestContext()
+        ((BindingProvider) hello).getRequestContext()
                 .put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY,
-                        "http://localhost:8080/services" + MTOM_ENDPOINT_ADDRESS);
-        Client c = ClientProxy.getClient(port);
+                        "http://localhost:" + port + "/services" + MTOM_ENDPOINT_ADDRESS);
+        Client c = ClientProxy.getClient(hello);
         c.getInInterceptors().add(new LoggingInInterceptor());
         c.getOutInterceptors().add(new LoggingOutInterceptor());
-        return port;
+        return hello;
     }
 
     protected Image getImage(String name) throws Exception {
@@ -126,6 +126,11 @@ public class CxfMtomConsumerTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
 
         @Bean
         public RouteBuilder routeBuilder() {

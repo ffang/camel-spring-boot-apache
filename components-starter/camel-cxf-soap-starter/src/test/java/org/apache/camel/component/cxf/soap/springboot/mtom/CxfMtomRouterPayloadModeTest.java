@@ -34,6 +34,7 @@ import javax.xml.ws.soap.SOAPBinding;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.mtom.HelloImpl;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
@@ -82,10 +83,11 @@ public class CxfMtomRouterPayloadModeTest {
     protected CamelContext context;
     private Endpoint endpoint;
     
+    static int port = CXFTestSupport.getPort1();
     
     @Bean
     public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
+        return new UndertowServletWebServerFactory(port);
     }
     
     
@@ -108,7 +110,7 @@ public class CxfMtomRouterPayloadModeTest {
         CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
         cxfEndpoint.setServiceNameAsQName(SERVICE_QNAME);
         cxfEndpoint.setEndpointNameAsQName(PORT_QNAME);
-        cxfEndpoint.setAddress("http://localhost:8080/services/" 
+        cxfEndpoint.setAddress("http://localhost:" + port + "/services/" 
         + getClass().getSimpleName() + "/jaxws-mtom/backend");
         cxfEndpoint.setWsdlURL("mtom.wsdl");
         Map<String, Object> properties = new HashMap<String, Object>();
@@ -167,11 +169,11 @@ public class CxfMtomRouterPayloadModeTest {
 
         HelloService service = new HelloService(wsdl, HelloService.SERVICE);
         assertNotNull(service, "Service is null");
-        Hello port = service.getHelloPort();
-        ((BindingProvider) port).getRequestContext()
+        Hello hello = service.getHelloPort();
+        ((BindingProvider) hello).getRequestContext()
                 .put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY,
-                        "http://localhost:8080/services/CxfMtomRouterPayloadModeTest/jaxws-mtom/hello");
-        return port;
+                        "http://localhost:" + port + "/services/CxfMtomRouterPayloadModeTest/jaxws-mtom/hello");
+        return hello;
     }
 
     private Image getImage(String name) throws Exception {

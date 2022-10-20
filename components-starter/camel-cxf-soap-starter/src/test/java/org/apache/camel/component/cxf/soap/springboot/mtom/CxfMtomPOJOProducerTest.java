@@ -36,6 +36,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.attachment.AttachmentMessage;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.mtom.HelloImpl;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
@@ -82,29 +83,7 @@ public class CxfMtomPOJOProducerTest {
     protected CamelContext context;
     private Endpoint endpoint;
     
-    
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
-    
-    
-   
-    @Bean
-    private CxfEndpoint serviceEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(SERVICE_QNAME);
-        cxfEndpoint.setEndpointNameAsQName(PORT_QNAME);
-        cxfEndpoint.setAddress("http://localhost:8080/services/" 
-        + getClass().getSimpleName() + "/jaxws-mtom/hello");
-        cxfEndpoint.setWsdlURL("mtom.wsdl");
-        cxfEndpoint.setServiceClass(org.apache.camel.cxf.mtom_feature.Hello.class);
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("mtom-enabled", true);
-        properties.put("loggingFeatureEnabled", false);
-        cxfEndpoint.setProperties(properties);
-        return cxfEndpoint;
-    }
+    static int port = CXFTestSupport.getPort1();
     
 
     @BeforeEach
@@ -172,6 +151,30 @@ public class CxfMtomPOJOProducerTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        
+       
+        @Bean
+        public CxfEndpoint serviceEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(SERVICE_QNAME);
+            cxfEndpoint.setEndpointNameAsQName(PORT_QNAME);
+            cxfEndpoint.setAddress("http://localhost:" + port + "/services/" 
+                + "CxfMtomPOJOProducerTest" + "/jaxws-mtom/hello");
+            cxfEndpoint.setWsdlURL("mtom.wsdl");
+            cxfEndpoint.setServiceClass(org.apache.camel.cxf.mtom_feature.Hello.class);
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("mtom-enabled", true);
+            properties.put("loggingFeatureEnabled", false);
+            cxfEndpoint.setProperties(properties);
+            return cxfEndpoint;
+        }
+        
 
         @Bean
         public RouteBuilder routeBuilder() {

@@ -34,9 +34,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
-import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.DirtiesContext;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
@@ -51,7 +48,7 @@ import org.slf4j.LoggerFactory;
                            CxfMtomConsumerTest.TestConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CxfJavaMtomProducerPayloadTest extends CxfMtomConsumerTest {
-    protected String MTOM_ENDPOINT_URI_MTOM_ENABLE = "cxf://http://localhost:8080/services" 
+    protected String MTOM_ENDPOINT_URI_MTOM_ENABLE = "cxf://http://localhost:" + port + "/services" 
                                                                   + MTOM_ENDPOINT_ADDRESS
                                                                   + "?serviceClass=org.apache.camel.cxf.mtom_feature.Hello"
                                                                   + "&properties.mtom-enabled=true"
@@ -61,11 +58,7 @@ public class CxfJavaMtomProducerPayloadTest extends CxfMtomConsumerTest {
     @Autowired
     CamelContext context;
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
-    
+      
     @Override
     @SuppressWarnings("unchecked")
     @Test

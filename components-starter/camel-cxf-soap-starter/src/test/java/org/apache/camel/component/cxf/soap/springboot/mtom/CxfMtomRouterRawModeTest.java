@@ -50,7 +50,7 @@ public class CxfMtomRouterRawModeTest extends CxfMtomRouterPayloadModeTest {
     
     @Bean
     public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
+        return new UndertowServletWebServerFactory(port);
     }
     
     @Bean
@@ -72,7 +72,7 @@ public class CxfMtomRouterRawModeTest extends CxfMtomRouterPayloadModeTest {
         CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
         cxfEndpoint.setServiceNameAsQName(SERVICE_QNAME);
         cxfEndpoint.setEndpointNameAsQName(PORT_QNAME);
-        cxfEndpoint.setAddress("http://localhost:8080/services/" 
+        cxfEndpoint.setAddress("http://localhost:" + port + "/services/" 
         + getClass().getSimpleName() + "/jaxws-mtom/backend");
         cxfEndpoint.setWsdlURL("mtom.wsdl");
         Map<String, Object> properties = new HashMap<String, Object>();
@@ -89,11 +89,11 @@ public class CxfMtomRouterRawModeTest extends CxfMtomRouterPayloadModeTest {
 
         HelloService service = new HelloService(wsdl, HelloService.SERVICE);
         assertNotNull(service, "Service is null");
-        Hello port = service.getHelloPort();
-        ((BindingProvider) port).getRequestContext()
+        Hello hello = service.getHelloPort();
+        ((BindingProvider) hello).getRequestContext()
                 .put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY,
-                        "http://localhost:8080/services" + "/CxfMtomRouterRawModeTest/jaxws-mtom/hello");
-        return port;
+                        "http://localhost:" + port + "/services" + "/CxfMtomRouterRawModeTest/jaxws-mtom/hello");
+        return hello;
     }
 
 }
