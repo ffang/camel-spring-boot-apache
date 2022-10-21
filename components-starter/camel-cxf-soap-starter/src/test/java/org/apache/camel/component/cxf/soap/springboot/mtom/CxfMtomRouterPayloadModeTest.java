@@ -70,6 +70,7 @@ import org.slf4j.LoggerFactory;
         CamelAutoConfiguration.class,
         CxfMtomRouterPayloadModeTest.class,
         CxfMtomRouterPayloadModeTest.TestConfiguration.class,
+        CxfMtomRouterPayloadModeTest.EndpointConfiguration.class,
         CxfAutoConfiguration.class
     }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
@@ -85,40 +86,6 @@ public class CxfMtomRouterPayloadModeTest {
     
     static int port = CXFTestSupport.getPort1();
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory(port);
-    }
-    
-    
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(SERVICE_QNAME);
-        cxfEndpoint.setEndpointNameAsQName(PORT_QNAME);
-        cxfEndpoint.setAddress("/" + getClass().getSimpleName()+ "/jaxws-mtom/hello");
-        cxfEndpoint.setWsdlURL("mtom.wsdl");
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("dataFormat", "PAYLOAD");
-        properties.put("mtom-enabled", "true");
-        cxfEndpoint.setProperties(properties);
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint serviceEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(SERVICE_QNAME);
-        cxfEndpoint.setEndpointNameAsQName(PORT_QNAME);
-        cxfEndpoint.setAddress("http://localhost:" + port + "/services/" 
-        + getClass().getSimpleName() + "/jaxws-mtom/backend");
-        cxfEndpoint.setWsdlURL("mtom.wsdl");
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("dataFormat", "PAYLOAD");
-        properties.put("mtom-enabled", "true");
-        cxfEndpoint.setProperties(properties);
-        return cxfEndpoint;
-    }
     
 
     @BeforeEach
@@ -190,6 +157,15 @@ public class CxfMtomRouterPayloadModeTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        
+        
+        
 
         @Bean
         public RouteBuilder routeBuilder() {
@@ -203,5 +179,36 @@ public class CxfMtomRouterPayloadModeTest {
         }
     }
     
-    
+    @Configuration
+    class EndpointConfiguration {
+        @Bean
+        public CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(SERVICE_QNAME);
+            cxfEndpoint.setEndpointNameAsQName(PORT_QNAME);
+            cxfEndpoint.setAddress("/" + "CxfMtomRouterPayloadModeTest"
+                + "/jaxws-mtom/hello");
+            cxfEndpoint.setWsdlURL("mtom.wsdl");
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("dataFormat", "PAYLOAD");
+            properties.put("mtom-enabled", "true");
+            cxfEndpoint.setProperties(properties);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        public CxfEndpoint serviceEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(SERVICE_QNAME);
+            cxfEndpoint.setEndpointNameAsQName(PORT_QNAME);
+            cxfEndpoint.setAddress("http://localhost:" + port + "/services/" 
+                + "CxfMtomRouterPayloadModeTest" + "/jaxws-mtom/backend");
+            cxfEndpoint.setWsdlURL("mtom.wsdl");
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("dataFormat", "PAYLOAD");
+            properties.put("mtom-enabled", "true");
+            cxfEndpoint.setProperties(properties);
+            return cxfEndpoint;
+        }
+    }
 }
