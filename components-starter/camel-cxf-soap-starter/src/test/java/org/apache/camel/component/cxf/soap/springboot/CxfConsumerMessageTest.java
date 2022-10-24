@@ -23,6 +23,7 @@ import org.apache.camel.Message;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.jaxws.HelloService;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 
@@ -54,6 +55,7 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
         CamelAutoConfiguration.class,
         CxfConsumerMessageTest.class,
         CxfConsumerMessageTest.TestConfiguration.class,
+        CxfConsumerMessageTest.ServletConfiguration.class,
         CxfAutoConfiguration.class
     }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
        
@@ -78,20 +80,19 @@ public class CxfConsumerMessageTest {
     protected final String simpleEndpointURI = "cxf://" + simpleEndpointAddress
                                                + "?serviceClass=org.apache.camel.component.cxf.jaxws.HelloService";
 
+    static int port = CXFTestSupport.getPort1();
 
     @Autowired
     ProducerTemplate template;
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
+    
     
     @Test
     public void testInvokingServiceFromClient() throws Exception {
         ClientProxyFactoryBean proxyFactory = new ClientProxyFactoryBean();
         ClientFactoryBean clientBean = proxyFactory.getClientFactoryBean();
-        clientBean.setAddress("http://localhost:8080/services" + simpleEndpointAddress);
+        clientBean.setAddress("http://localhost:" + port 
+                              + "/services" + simpleEndpointAddress);
         clientBean.setServiceClass(HelloService.class);
         clientBean.setBus(BusFactory.getDefaultBus());
 
@@ -142,4 +143,11 @@ public class CxfConsumerMessageTest {
         }
     }
     
+    @Configuration
+    class ServletConfiguration {
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+    }
 }

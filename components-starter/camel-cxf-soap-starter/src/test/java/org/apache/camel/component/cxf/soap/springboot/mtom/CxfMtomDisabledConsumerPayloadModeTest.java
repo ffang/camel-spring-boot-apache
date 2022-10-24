@@ -61,6 +61,11 @@ import org.apache.cxf.staxutils.StaxUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
+/**
+ * Unit test for exercising SOAP with Attachment (SwA) feature of a CxfConsumer in PAYLOAD mode. That is, testing
+ * attachment with MTOM optimization off.
+ */
 @DirtiesContext
 @CamelSpringBootTest
 @SpringBootTest(classes = {
@@ -134,7 +139,7 @@ public class CxfMtomDisabledConsumerPayloadModeTest {
             cxfEndpoint.setWsdlURL("mtom.wsdl");
             Map<String, Object> properties = new HashMap<String, Object>();
             properties.put("dataFormat", "PAYLOAD");
-            properties.put("mtom-enabled", true);
+            properties.put("mtom-enabled", false);
             properties.put("loggingFeatureEnabled", false);
             cxfEndpoint.setProperties(properties);
             return cxfEndpoint;

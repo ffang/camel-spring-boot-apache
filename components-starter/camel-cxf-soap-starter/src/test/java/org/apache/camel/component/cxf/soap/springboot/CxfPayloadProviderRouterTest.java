@@ -52,7 +52,8 @@ import org.apache.hello_world_soap_http.GreeterImpl;
 @DirtiesContext
 @CamelSpringBootTest
 @SpringBootTest(classes = {
-                           CamelAutoConfiguration.class, CxfPayloadProviderRouterTest.class,
+                           CamelAutoConfiguration.class, 
+                           CxfPayloadProviderRouterTest.class,
                            CxfPayloadProviderRouterTest.TestConfiguration.class,
                            AbstractCXFGreeterRouterTest.TestConfiguration.class,
                            CxfAutoConfiguration.class
@@ -77,51 +78,6 @@ public class CxfPayloadProviderRouterTest extends AbstractCXFGreeterRouterTest {
         endpoint = Endpoint.publish(backServiceAddress, implementor);
     }
 
-    
-    
-    // *************************************
-    // Config
-    // *************************************
-
-    @Configuration
-    public class TestConfiguration {
-        
-        @Bean
-        CxfEndpoint routerEndpoint() {
-            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-            cxfEndpoint.setAddress("/CxfPayloadProviderRouterTest/CamelContext/RouterPort");
-            Map<String, Object> properties = new HashMap<String, Object>();
-            properties.put("jaxws.provider.interpretNullAsOneway", true);
-            cxfEndpoint.setProperties(properties);
-            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-            cxfEndpoint.setSynchronous(true);
-            return cxfEndpoint;
-        }
-        
-        @Bean
-        CxfEndpoint serviceEndpoint() {
-            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-            cxfEndpoint.setAddress("http://localhost:" + port + "/services" + backServiceAddress);
-            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-            cxfEndpoint.setSynchronous(true);
-            return cxfEndpoint;
-        }
-
-
-        @Bean
-        public RouteBuilder routeBuilder() {
-            return new RouteBuilder() {
-                @Override
-                public void configure() {
-                    from("cxf:bean:routerEndpoint")
-                            .setHeader("operationNamespace", constant("http://camel.apache.org/cxf/jaxws/dispatch"))
-                            .setHeader("operationName", constant("Invoke"))
-                            .to("cxf:bean:serviceEndpoint");
-                }
-            };
-        }
-    }
-    
     @Override
     @Test
     public void testPublishEndpointUrl() throws Exception {
@@ -181,5 +137,50 @@ public class CxfPayloadProviderRouterTest extends AbstractCXFGreeterRouterTest {
         }
 
     }
+    
+    // *************************************
+    // Config
+    // *************************************
+
+    @Configuration
+    public class TestConfiguration {
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setAddress("/CxfPayloadProviderRouterTest/CamelContext/RouterPort");
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("jaxws.provider.interpretNullAsOneway", true);
+            cxfEndpoint.setProperties(properties);
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            cxfEndpoint.setSynchronous(true);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint serviceEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setAddress("http://localhost:" + port + "/services" + backServiceAddress);
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            cxfEndpoint.setSynchronous(true);
+            return cxfEndpoint;
+        }
+
+
+        @Bean
+        public RouteBuilder routeBuilder() {
+            return new RouteBuilder() {
+                @Override
+                public void configure() {
+                    from("cxf:bean:routerEndpoint")
+                            .setHeader("operationNamespace", constant("http://camel.apache.org/cxf/jaxws/dispatch"))
+                            .setHeader("operationName", constant("Invoke"))
+                            .to("cxf:bean:serviceEndpoint");
+                }
+            };
+        }
+    }
+    
+    
 
 }

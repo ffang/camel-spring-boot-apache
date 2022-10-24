@@ -60,8 +60,10 @@ import org.slf4j.LoggerFactory;
 @DirtiesContext
 @CamelSpringBootTest
 @SpringBootTest(classes = {
-                           CamelAutoConfiguration.class, CxfMtomConsumerTest.class,
-                           CxfMtomConsumerTest.TestConfiguration.class, CxfAutoConfiguration.class
+                           CamelAutoConfiguration.class, 
+                           CxfMtomConsumerTest.class,
+                           CxfMtomConsumerTest.TestConfiguration.class, 
+                           CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CxfMtomConsumerTest {
 

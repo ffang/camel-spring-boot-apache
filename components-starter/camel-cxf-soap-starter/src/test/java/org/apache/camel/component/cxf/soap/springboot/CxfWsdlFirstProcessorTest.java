@@ -54,8 +54,10 @@ import org.slf4j.LoggerFactory;
 @DirtiesContext
 @CamelSpringBootTest
 @SpringBootTest(classes = {
-                           CamelAutoConfiguration.class, CxfWsdlFirstProcessorTest.class,
+                           CamelAutoConfiguration.class, 
+                           CxfWsdlFirstProcessorTest.class,
                            CxfWsdlFirstProcessorTest.TestConfiguration.class,
+                           AbstractCxfWsdlFirstTest.ServletConfiguration.class,
                            CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CxfWsdlFirstProcessorTest extends AbstractCxfWsdlFirstTest {
@@ -80,37 +82,7 @@ public class CxfWsdlFirstProcessorTest extends AbstractCxfWsdlFirstTest {
         }
     }
     
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(serviceName);
-        cxfEndpoint.setEndpointNameAsQName(endpointName);
-        cxfEndpoint.setServiceClass(org.apache.camel.wsdl_first.Person.class);
-        cxfEndpoint.setAddress("/CxfWsdlFirstProcessorTest/RouterService/");
-        cxfEndpoint.setWsdlURL("classpath:person.wsdl");
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("schema-validation-enabled", true);
-        cxfEndpoint.setProperties(properties);
-        List<Handler> handlers = new ArrayList<Handler>();
-        handlers.add(fromHandler);
-        cxfEndpoint.setHandlers(handlers);
-        cxfEndpoint.setDataFormat(DataFormat.POJO);
-        return cxfEndpoint;
-    }
     
-    @Bean
-    private CxfEndpoint serviceEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(serviceName);
-        cxfEndpoint.setEndpointNameAsQName(endpointName);
-        cxfEndpoint.setServiceClass(org.apache.camel.wsdl_first.Person.class);
-        cxfEndpoint.setAddress("http://localhost:8080/services/CxfWsdlFirstProcessorTest/PersonService/");
-        List<Handler> handlers = new ArrayList<Handler>();
-        handlers.add(toHandler);
-        cxfEndpoint.setHandlers(handlers);
-        cxfEndpoint.setDataFormat(DataFormat.POJO);
-        return cxfEndpoint;
-    }
     
     @Override
     protected void verifyJaxwsHandlers(JaxwsTestHandler fromHandler, JaxwsTestHandler toHandler) {
@@ -125,6 +97,39 @@ public class CxfWsdlFirstProcessorTest extends AbstractCxfWsdlFirstTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(serviceName);
+            cxfEndpoint.setEndpointNameAsQName(endpointName);
+            cxfEndpoint.setServiceClass(org.apache.camel.wsdl_first.Person.class);
+            cxfEndpoint.setAddress("/CxfWsdlFirstProcessorTest/RouterService/");
+            cxfEndpoint.setWsdlURL("classpath:person.wsdl");
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("schema-validation-enabled", true);
+            cxfEndpoint.setProperties(properties);
+            List<Handler> handlers = new ArrayList<Handler>();
+            handlers.add(fromHandler);
+            cxfEndpoint.setHandlers(handlers);
+            cxfEndpoint.setDataFormat(DataFormat.POJO);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint serviceEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(serviceName);
+            cxfEndpoint.setEndpointNameAsQName(endpointName);
+            cxfEndpoint.setServiceClass(org.apache.camel.wsdl_first.Person.class);
+            cxfEndpoint.setAddress("http://localhost:" + port 
+                                   + "/services/CxfWsdlFirstProcessorTest/PersonService/");
+            List<Handler> handlers = new ArrayList<Handler>();
+            handlers.add(toHandler);
+            cxfEndpoint.setHandlers(handlers);
+            cxfEndpoint.setDataFormat(DataFormat.POJO);
+            return cxfEndpoint;
+        }
 
         @Bean
         public RouteBuilder routeBuilder() {

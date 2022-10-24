@@ -54,6 +54,7 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
         CamelAutoConfiguration.class,
         CxfPayloadProducerNamespaceOnEnvelopeTest.class,
         CxfPayloadProducerNamespaceOnEnvelopeTest.TestConfiguration.class,
+        CxfPayloadProducerNamespaceOnEnvelopeTest.EndpointConfiguration.class,
         CxfAutoConfiguration.class
     }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
@@ -72,30 +73,7 @@ public class CxfPayloadProducerNamespaceOnEnvelopeTest {
 
     
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory(port);
-    }
     
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(SERVICENAME);
-        cxfEndpoint.setAddress("/GetToken/SoapContext/SoapPort");
-        cxfEndpoint.setDataFormat(DataFormat.RAW);
-        return cxfEndpoint;
-    }
-    
-    
-    @Bean
-    private CxfEndpoint serviceEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(SERVICENAME);
-        cxfEndpoint.setAddress("http://localhost:" + port 
-            + "/services/GetToken/SoapContext/SoapPort");
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        return cxfEndpoint;
-    }
     
     @Autowired
     ProducerTemplate template;
@@ -116,6 +94,8 @@ public class CxfPayloadProducerNamespaceOnEnvelopeTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        
 
         @Bean
         public RouteBuilder routeBuilder() {
@@ -140,5 +120,32 @@ public class CxfPayloadProducerNamespaceOnEnvelopeTest {
         }
     }
     
+    @Configuration
+    class EndpointConfiguration {
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(SERVICENAME);
+            cxfEndpoint.setAddress("/GetToken/SoapContext/SoapPort");
+            cxfEndpoint.setDataFormat(DataFormat.RAW);
+            return cxfEndpoint;
+        }
+        
+        
+        @Bean
+        CxfEndpoint serviceEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(SERVICENAME);
+            cxfEndpoint.setAddress("http://localhost:" + port 
+                + "/services/GetToken/SoapContext/SoapPort");
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            return cxfEndpoint;
+        }
+    }
     
 }

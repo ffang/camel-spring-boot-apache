@@ -26,6 +26,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.common.DataFormat;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.jaxws.HelloService;
@@ -72,6 +73,8 @@ public class FileToCxfMessageDataFormatTest {
     private static final Logger LOG = LoggerFactory.getLogger(FileToCxfMessageDataFormatTest.class);
     
     private Server server;
+    
+    static int port = CXFTestSupport.getPort1();
 
     @BeforeEach
     public void setUp() throws Exception {
@@ -98,23 +101,6 @@ public class FileToCxfMessageDataFormatTest {
     
     
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
-    
-    
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(HelloService.class);
-        cxfEndpoint.setAddress("http://localhost:8080/services" + "/FileToCxfMessageDataFormatTest/router");
-        cxfEndpoint.setDataFormat(DataFormat.RAW);
-        return cxfEndpoint;
-    }
-    
-    
- 
     @EndpointInject("mock:result")
     MockEndpoint mock;
     
@@ -154,6 +140,22 @@ public class FileToCxfMessageDataFormatTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setAddress("http://localhost:" + port 
+                                   + "/services" + "/FileToCxfMessageDataFormatTest/router");
+            cxfEndpoint.setDataFormat(DataFormat.RAW);
+            return cxfEndpoint;
+        }
+        
 
         @Bean
         public RouteBuilder routeBuilder() {

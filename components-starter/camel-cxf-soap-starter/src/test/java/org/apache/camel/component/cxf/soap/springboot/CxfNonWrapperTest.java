@@ -69,34 +69,6 @@ public class CxfNonWrapperTest {
     
     static int port = CXFTestSupport.getPort1();
 
-
-    
-    
-    @Bean
-    public PersonProcessor personProcessor() {
-        return new PersonProcessor();
-    }
-    
-       
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory(port);
-    }
-    
-    
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(SERVICE_NAME);
-        cxfEndpoint.setEndpointNameAsQName(PORT_NAME);
-        cxfEndpoint.setServiceClass(org.apache.camel.non_wrapper.Person.class);
-        cxfEndpoint.setAddress("/CxfNonWrapperTest/PersonService/");
-        cxfEndpoint.setDataFormat(DataFormat.POJO);
-        return cxfEndpoint;
-    }
-    
-    
-        
     @Test
     public void testInvokingServiceFromCXFClient() throws Exception {
 
@@ -129,6 +101,30 @@ public class CxfNonWrapperTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public PersonProcessor personProcessor() {
+            return new PersonProcessor();
+        }
+        
+           
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(SERVICE_NAME);
+            cxfEndpoint.setEndpointNameAsQName(PORT_NAME);
+            cxfEndpoint.setServiceClass(org.apache.camel.non_wrapper.Person.class);
+            cxfEndpoint.setAddress("/CxfNonWrapperTest/PersonService/");
+            cxfEndpoint.setDataFormat(DataFormat.POJO);
+            return cxfEndpoint;
+        }
+        
 
         @Bean
         public RouteBuilder routeBuilder() {

@@ -29,6 +29,7 @@ import javax.xml.ws.WebServiceException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.common.message.CxfConstants;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 
@@ -43,6 +44,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.apache.camel.wsdl_first.Person;
@@ -62,14 +64,11 @@ public abstract class AbstractCxfWsdlFirstTest {
     protected static JaxwsTestHandler fromHandler = new JaxwsTestHandler();
     protected static JaxwsTestHandler toHandler = new JaxwsTestHandler();
         
+    static int port = CXFTestSupport.getPort1();
     @Autowired
     ProducerTemplate template;
 
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
-
+    
     
     @Test
     public void testInvokingServiceFromCXFClient() throws Exception {
@@ -81,7 +80,8 @@ public abstract class AbstractCxfWsdlFirstTest {
         Person client = ss.getSoap();
         ((BindingProvider) client).getRequestContext()
                 .put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY,
-                        "http://localhost:8080/services/" + getClass().getSimpleName()
+                        "http://localhost:" + port 
+                        + "/services/" + getClass().getSimpleName()
                                                                 + "/RouterService/");
 
         Holder<String> personId = new Holder<>();
@@ -157,4 +157,12 @@ public abstract class AbstractCxfWsdlFirstTest {
         return exchange;
     }
 
+    @Configuration
+    class ServletConfiguration {
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+
+    }
 }

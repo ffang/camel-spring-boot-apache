@@ -71,28 +71,7 @@ public class NoParamTest {
     }
 
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory(port);
-    }
     
-    
-    @Bean
-    private CxfEndpoint noParamEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.noparam.NoParamEndpoint.class);
-        cxfEndpoint.setAddress("/camel-noparam/");
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint noParamServiceEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.noparam.NoParamEndpoint.class);
-        cxfEndpoint.setAddress("http://localhost:" + port 
-                               + "/services/camel-noparam/");
-        return cxfEndpoint;
-    }
     
     @Autowired
     ProducerTemplate template;
@@ -110,7 +89,21 @@ public class NoParamTest {
 
     @Configuration
     public class TestConfiguration {
-
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        
+        @Bean
+        CxfEndpoint noParamEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.noparam.NoParamEndpoint.class);
+            cxfEndpoint.setAddress("/camel-noparam/");
+            return cxfEndpoint;
+        }
+        
         @Bean
         public RouteBuilder routeBuilder() {
             return new RouteBuilder() {
@@ -121,7 +114,8 @@ public class NoParamTest {
                     .to("mock:end");
                     
                     from("direct:noParam")
-                    .to("cxf:bean:noParamServiceEndpoint");
+                    .to("cxf:bean:noParamEndpoint?address=" + "http://localhost:" + port 
+                        + "/services/camel-noparam/");
                 }
             };
         }

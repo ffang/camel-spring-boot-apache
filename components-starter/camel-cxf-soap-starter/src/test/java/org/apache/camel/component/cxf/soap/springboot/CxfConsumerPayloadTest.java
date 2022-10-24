@@ -35,8 +35,6 @@ import org.apache.camel.spring.boot.CamelAutoConfiguration;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
-import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
@@ -47,8 +45,10 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 @DirtiesContext
 @CamelSpringBootTest
 @SpringBootTest(classes = {
-                           CamelAutoConfiguration.class, CxfConsumerPayloadTest.class,
+                           CamelAutoConfiguration.class, 
+                           CxfConsumerPayloadTest.class,
                            CxfConsumerPayloadTest.TestConfiguration.class,
+                           CxfConsumerMessageTest.ServletConfiguration.class,
                            CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CxfConsumerPayloadTest extends CxfConsumerMessageTest {
@@ -66,11 +66,7 @@ public class CxfConsumerPayloadTest extends CxfConsumerMessageTest {
 
     protected static final String ELEMENT_NAMESPACE = "http://jaxws.cxf.component.camel.apache.org/";
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
-
+   
     protected void checkRequest(String expect, String request) {
 
         if (expect.equals("ECHO_REQUEST")) {

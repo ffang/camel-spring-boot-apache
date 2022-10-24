@@ -265,7 +265,6 @@ public class CxfMtomDisabledProducerPayloadModeTest {
             cxfEndpoint.setWsdlURL("mtom.wsdl");
             Map<String, Object> properties = new HashMap<String, Object>();
             properties.put("dataFormat", "PAYLOAD");
-            properties.put("mtom-enabled", true);
             properties.put("loggingFeatureEnabled", false);
             cxfEndpoint.setProperties(properties);
             return cxfEndpoint;

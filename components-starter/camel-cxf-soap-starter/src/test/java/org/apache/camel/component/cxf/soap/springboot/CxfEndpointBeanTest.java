@@ -63,56 +63,6 @@ public class CxfEndpointBeanTest {
     @Autowired
     ApplicationContext ctx;
     
-        
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.jaxws.HelloService.class);
-        cxfEndpoint.setAddress("/CxfEndpointBeanTest/router");
-        cxfEndpoint.setContinuationTimeout(60000);
-        List<String> schemaLocations = new ArrayList<String>();
-        schemaLocations.add("classpath:wsdl/Message.xsd");
-        cxfEndpoint.setSchemaLocations(schemaLocations);
-        List<Handler> handlers = new ArrayList<Handler>();
-        handlers.add(new JaxwsTestHandler());
-        cxfEndpoint.setHandlers(handlers);
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint clientEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.jaxws.HelloService.class);
-        
-        cxfEndpoint.setAddress("http://localhost:8080/services/CxfEndpointBeanTest/helloworld");
-        
-        Map<String, Object> properties = new HashMap<String, Object>();
-        AuthorizationPolicy policy = new AuthorizationPolicy();
-        policy.setUserName("test");
-        properties.put("org.apache.cxf.configuration.security.AuthorizationPolicy", policy);
-        cxfEndpoint.setProperties(properties);
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint myEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.wsdl_first.Person.class);
-        cxfEndpoint.setAddress("/CxfEndpointBeanTest/test");
-        cxfEndpoint.setWsdlURL("person.wsdl");
-        cxfEndpoint.setServiceNameAsQName(serviceName);
-        cxfEndpoint.setEndpointNameAsQName(endpointName);
-        cxfEndpoint.setLoggingFeatureEnabled(true);
-        cxfEndpoint.setLoggingSizeLimit(200);
-        
-        SoapBindingConfiguration bindingCfg = new SoapBindingConfiguration();
-        bindingCfg.setVersion(Soap12.getInstance());
-        cxfEndpoint.setBindingConfig(bindingCfg);
-        return cxfEndpoint;
-    }
-    
-    
-
     @Test
     public void testCxfEndpointsWithCamelContext() {
         CamelContext context = ctx.getBean("camelContext", CamelContext.class);
@@ -141,6 +91,54 @@ public class CxfEndpointBeanTest {
     
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.jaxws.HelloService.class);
+            cxfEndpoint.setAddress("/CxfEndpointBeanTest/router");
+            cxfEndpoint.setContinuationTimeout(60000);
+            List<String> schemaLocations = new ArrayList<String>();
+            schemaLocations.add("classpath:wsdl/Message.xsd");
+            cxfEndpoint.setSchemaLocations(schemaLocations);
+            List<Handler> handlers = new ArrayList<Handler>();
+            handlers.add(new JaxwsTestHandler());
+            cxfEndpoint.setHandlers(handlers);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint clientEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.jaxws.HelloService.class);
+            
+            cxfEndpoint.setAddress("http://localhost:8080/services/CxfEndpointBeanTest/helloworld");
+            
+            Map<String, Object> properties = new HashMap<String, Object>();
+            AuthorizationPolicy policy = new AuthorizationPolicy();
+            policy.setUserName("test");
+            properties.put("org.apache.cxf.configuration.security.AuthorizationPolicy", policy);
+            cxfEndpoint.setProperties(properties);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint myEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.camel.wsdl_first.Person.class);
+            cxfEndpoint.setAddress("/CxfEndpointBeanTest/test");
+            cxfEndpoint.setWsdlURL("person.wsdl");
+            cxfEndpoint.setServiceNameAsQName(serviceName);
+            cxfEndpoint.setEndpointNameAsQName(endpointName);
+            cxfEndpoint.setLoggingFeatureEnabled(true);
+            cxfEndpoint.setLoggingSizeLimit(200);
+            
+            SoapBindingConfiguration bindingCfg = new SoapBindingConfiguration();
+            bindingCfg.setVersion(Soap12.getInstance());
+            cxfEndpoint.setBindingConfig(bindingCfg);
+            return cxfEndpoint;
+        }
+        
 
         @Bean
         public RouteBuilder routeBuilder() {
