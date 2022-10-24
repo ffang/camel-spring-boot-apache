@@ -24,6 +24,7 @@ import javax.xml.namespace.QName;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
@@ -74,50 +75,15 @@ public class WSRMTest {
     private String namespace = "http://camel.apache.org/cxf/wsrm";
     private QName serviceName = new QName(namespace, "HelloWorldService");
     private QName endpointName = new QName(namespace, "HelloWorldPort");
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
     
-    
-    @Bean("helloWorld")
-    private CxfEndpoint getCxfEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(serviceName);
-        cxfEndpoint.setEndpointNameAsQName(endpointName);
-        cxfEndpoint.setServiceClass(HelloWorldImpl.class);
-        cxfEndpoint.setWsdlURL(WSRMTest.class.getResource("/HelloWorld.wsdl").toString());
-        cxfEndpoint.setAddress("/wsrm/HelloWorld");
-        cxfEndpoint.getInInterceptors().add(new org.apache.cxf.ext.logging.LoggingInInterceptor());
-        cxfEndpoint.getOutInterceptors().add(new org.apache.cxf.ext.logging.LoggingOutInterceptor());
-        cxfEndpoint.getFeatures().add(new org.apache.cxf.ws.addressing.WSAddressingFeature());
-        
-        org.apache.cxf.ws.rm.feature.RMFeature rmFeature = new org.apache.cxf.ws.rm.feature.RMFeature();
-        RMAssertion.BaseRetransmissionInterval baseRetransmissionInterval = new RMAssertion.BaseRetransmissionInterval();
-        baseRetransmissionInterval.setMilliseconds(Long.valueOf(4000));
-        RMAssertion.AcknowledgementInterval acknowledgementInterval = new RMAssertion.AcknowledgementInterval();
-        acknowledgementInterval.setMilliseconds(Long.valueOf(2000));
-
-        RMAssertion rmAssertion = new RMAssertion();
-        rmAssertion.setAcknowledgementInterval(acknowledgementInterval);
-        rmAssertion.setBaseRetransmissionInterval(baseRetransmissionInterval);
-
-        AcksPolicyType acksPolicy = new AcksPolicyType();
-        acksPolicy.setIntraMessageThreshold(0);
-        DestinationPolicyType destinationPolicy = new DestinationPolicyType();
-        destinationPolicy.setAcksPolicy(acksPolicy);
-
-        rmFeature.setRMAssertion(rmAssertion);
-        rmFeature.setDestinationPolicy(destinationPolicy);
-        cxfEndpoint.getFeatures().add(rmFeature);
-        return cxfEndpoint;
-    }
+    static int port = CXFTestSupport.getPort1();
     
     @Test
     public void testWSRM() throws Exception {
         JaxWsProxyFactoryBean proxyFactory = new JaxWsProxyFactoryBean();
         ClientFactoryBean clientBean = proxyFactory.getClientFactoryBean();
-        clientBean.setAddress("http://localhost:8080/services/wsrm/HelloWorld");
+        clientBean.setAddress("http://localhost:" + port 
+                              + "/services/wsrm/HelloWorld");
         clientBean.setServiceClass(HelloWorld.class);
         clientBean.setWsdlURL(WSRMTest.class.getResource("/HelloWorld.wsdl").toString());
         proxyFactory.getFeatures().add(new org.apache.cxf.ws.addressing.WSAddressingFeature());
@@ -161,6 +127,46 @@ public class WSRMTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        
+        @Bean("helloWorld")
+        CxfEndpoint getCxfEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(serviceName);
+            cxfEndpoint.setEndpointNameAsQName(endpointName);
+            cxfEndpoint.setServiceClass(HelloWorldImpl.class);
+            cxfEndpoint.setWsdlURL(WSRMTest.class.getResource("/HelloWorld.wsdl").toString());
+            cxfEndpoint.setAddress("/wsrm/HelloWorld");
+            cxfEndpoint.getInInterceptors().add(new org.apache.cxf.ext.logging.LoggingInInterceptor());
+            cxfEndpoint.getOutInterceptors().add(new org.apache.cxf.ext.logging.LoggingOutInterceptor());
+            cxfEndpoint.getFeatures().add(new org.apache.cxf.ws.addressing.WSAddressingFeature());
+            
+            org.apache.cxf.ws.rm.feature.RMFeature rmFeature = new org.apache.cxf.ws.rm.feature.RMFeature();
+            RMAssertion.BaseRetransmissionInterval baseRetransmissionInterval = new RMAssertion.BaseRetransmissionInterval();
+            baseRetransmissionInterval.setMilliseconds(Long.valueOf(4000));
+            RMAssertion.AcknowledgementInterval acknowledgementInterval = new RMAssertion.AcknowledgementInterval();
+            acknowledgementInterval.setMilliseconds(Long.valueOf(2000));
+
+            RMAssertion rmAssertion = new RMAssertion();
+            rmAssertion.setAcknowledgementInterval(acknowledgementInterval);
+            rmAssertion.setBaseRetransmissionInterval(baseRetransmissionInterval);
+
+            AcksPolicyType acksPolicy = new AcksPolicyType();
+            acksPolicy.setIntraMessageThreshold(0);
+            DestinationPolicyType destinationPolicy = new DestinationPolicyType();
+            destinationPolicy.setAcksPolicy(acksPolicy);
+
+            rmFeature.setRMAssertion(rmAssertion);
+            rmFeature.setDestinationPolicy(destinationPolicy);
+            cxfEndpoint.getFeatures().add(rmFeature);
+            return cxfEndpoint;
+        }
+        
 
         @Bean
         public RouteBuilder routeBuilder() {

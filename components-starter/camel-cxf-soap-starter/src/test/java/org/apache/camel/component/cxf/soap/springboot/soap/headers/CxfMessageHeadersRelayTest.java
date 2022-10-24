@@ -103,7 +103,8 @@ import org.slf4j.LoggerFactory;
 @DirtiesContext
 @CamelSpringBootTest
 @SpringBootTest(classes = {
-                           CamelAutoConfiguration.class, CxfMessageHeadersRelayTest.class,
+                           CamelAutoConfiguration.class, 
+                           CxfMessageHeadersRelayTest.class,
                            CxfMessageHeadersRelayTest.TestConfiguration.class,
                            CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -783,156 +784,6 @@ public class CxfMessageHeadersRelayTest {
 
     // END SNIPPET: InsertResponseOutHeaderProcessor
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() throws InterruptedException {
-        ServletWebServerFactory webServerFactory = new UndertowServletWebServerFactory(port);
-        return webServerFactory;
-    }
-
-    
-    @Bean
-    private CxfEndpoint routerRelayEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.soap.headers.HeaderTester.class);
-        cxfEndpoint.setAddress("/CxfMessageHeadersRelayTest/HeaderService/routerRelayEndpoint");
-        cxfEndpoint.setWsdlURL("soap_header.wsdl");
-        cxfEndpoint.setEndpointNameAsQName(
-            QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortRelay"));
-        cxfEndpoint.setServiceNameAsQName(SERVICENAME);
-        return cxfEndpoint;
-    }
-
-    @Bean
-    private CxfEndpoint serviceRelayEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.soap.headers.HeaderTester.class);
-        cxfEndpoint.setAddress("http://localhost:" + port + "/services/CxfMessageHeadersRelayTest/HeaderService/routerRelayEndpointBackend");
-        cxfEndpoint.setWsdlURL("soap_header.wsdl");
-        cxfEndpoint.setEndpointNameAsQName(
-            QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortRelay"));
-        cxfEndpoint.setServiceNameAsQName(SERVICENAME);
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint routerRelayEndpointWithInsertion() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.soap.headers.HeaderTester.class);
-        cxfEndpoint.setAddress("/CxfMessageHeadersRelayTest/HeaderService/routerRelayEndpointWithInsertion");
-        cxfEndpoint.setWsdlURL("soap_header.wsdl");
-        cxfEndpoint.setEndpointNameAsQName(
-            QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortRelayWithInsertion"));
-        cxfEndpoint.setServiceNameAsQName(SERVICENAME);
-        cxfEndpoint.getFeatures().add(new LoggingFeature());
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint serviceRelayEndpointWithInsertion() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.soap.headers.HeaderTester.class);
-        cxfEndpoint.setAddress("http://localhost:" + port + "/services/CxfMessageHeadersRelayTest/HeaderService/routerRelayEndpointWithInsertionBackend");
-        cxfEndpoint.setWsdlURL("soap_header.wsdl");
-        cxfEndpoint.setEndpointNameAsQName(
-            QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortRelayWithInsertion"));
-        cxfEndpoint.setServiceNameAsQName(SERVICENAME);
-        cxfEndpoint.getFeatures().add(new LoggingFeature());
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint routerNoRelayEndpoint(HeaderFilterStrategy dropAllMessageHeadersStrategy) {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.soap.headers.HeaderTester.class);
-        cxfEndpoint.setAddress("/CxfMessageHeadersRelayTest/HeaderService/routerNoRelayEndpoint");
-        cxfEndpoint.setWsdlURL("soap_header.wsdl");
-        cxfEndpoint.setEndpointNameAsQName(
-            QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortNoRelay"));
-        cxfEndpoint.setServiceNameAsQName(SERVICENAME);
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("dataFormat", "PAYLOAD");
-        cxfEndpoint.setProperties(properties);
-        cxfEndpoint.setHeaderFilterStrategy(dropAllMessageHeadersStrategy);
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint serviceNoRelayEndpoint(HeaderFilterStrategy dropAllMessageHeadersStrategy) {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.soap.headers.HeaderTester.class);
-        cxfEndpoint.setAddress("http://localhost:" + port + "/services/CxfMessageHeadersRelayTest/HeaderService/routerNoRelayEndpointBackend");
-        cxfEndpoint.setWsdlURL("soap_header.wsdl");
-        cxfEndpoint.setEndpointNameAsQName(
-            QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortNoRelay"));
-        cxfEndpoint.setServiceNameAsQName(SERVICENAME);
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("dataFormat", "PAYLOAD");
-        cxfEndpoint.setProperties(properties);
-        cxfEndpoint.setHeaderFilterStrategy(dropAllMessageHeadersStrategy);
-        return cxfEndpoint;
-    }
-    
-    
-    @Bean
-    private CxfEndpoint routerNoRelayNoServiceClassEndpoint(HeaderFilterStrategy dropAllMessageHeadersStrategy) {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setAddress("/CxfMessageHeadersRelayTest/HeaderService/routerNoRelayNoServiceClassEndpoint");
-        cxfEndpoint.setWsdlURL("soap_header.wsdl");
-        cxfEndpoint.setEndpointNameAsQName(
-            QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortNoRelay"));
-        cxfEndpoint.setServiceNameAsQName(SERVICENAME);
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("dataFormat", "PAYLOAD");
-        properties.put("allowStreaming", "false");
-        cxfEndpoint.setProperties(properties);
-        cxfEndpoint.setHeaderFilterStrategy(dropAllMessageHeadersStrategy);
-        return cxfEndpoint;
-    }
-
-    @Bean
-    private CxfEndpoint serviceNoRelayNoServiceClassEndpoint(HeaderFilterStrategy dropAllMessageHeadersStrategy) {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setAddress("http://localhost:" + port + "/services/CxfMessageHeadersRelayTest/HeaderService/routerNoRelayEndpointBackend");
-        cxfEndpoint.setWsdlURL("soap_header.wsdl");
-        cxfEndpoint.setEndpointNameAsQName(
-            QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortNoRelay"));
-        cxfEndpoint.setServiceNameAsQName(SERVICENAME);
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("dataFormat", "PAYLOAD");
-        cxfEndpoint.setProperties(properties);
-        cxfEndpoint.setHeaderFilterStrategy(dropAllMessageHeadersStrategy);
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint serviceExtraRelays(HeaderFilterStrategy customMessageFilterStrategy) {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setAddress("/CxfMessageHeadersRelayTest/HeaderService/serviceExtraRelays");
-        cxfEndpoint.setWsdlURL("soap_header.wsdl");
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.soap.headers.HeaderTester.class);
-        cxfEndpoint.setEndpointNameAsQName(
-            QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortCustomRelay"));
-        cxfEndpoint.setServiceNameAsQName(SERVICENAME);
-        cxfEndpoint.setHeaderFilterStrategy(customMessageFilterStrategy);
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private HeaderFilterStrategy dropAllMessageHeadersStrategy() {
-        CxfHeaderFilterStrategy headerFilterStrategy = new CxfHeaderFilterStrategy();
-        headerFilterStrategy.setRelayHeaders(false);
-        return headerFilterStrategy;
-    }
-    
-    @Bean
-    private HeaderFilterStrategy customMessageFilterStrategy() {
-        CxfHeaderFilterStrategy headerFilterStrategy = new CxfHeaderFilterStrategy();
-        List<MessageHeaderFilter> headerFilterList = new ArrayList<MessageHeaderFilter>();
-        headerFilterList.add(new SoapMessageHeaderFilter());
-        headerFilterList.add(new CustomHeaderFilter());
-        headerFilterStrategy.setMessageHeaderFilters(headerFilterList);
-        return headerFilterStrategy;
-    }
     
     // *************************************
     // Config
@@ -940,6 +791,158 @@ public class CxfMessageHeadersRelayTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() throws InterruptedException {
+            ServletWebServerFactory webServerFactory = new UndertowServletWebServerFactory(port);
+            return webServerFactory;
+        }
+
+        
+        @Bean
+        CxfEndpoint routerRelayEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.soap.headers.HeaderTester.class);
+            cxfEndpoint.setAddress("/CxfMessageHeadersRelayTest/HeaderService/routerRelayEndpoint");
+            cxfEndpoint.setWsdlURL("soap_header.wsdl");
+            cxfEndpoint.setEndpointNameAsQName(
+                QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortRelay"));
+            cxfEndpoint.setServiceNameAsQName(SERVICENAME);
+            return cxfEndpoint;
+        }
+
+        @Bean
+        CxfEndpoint serviceRelayEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.soap.headers.HeaderTester.class);
+            cxfEndpoint.setAddress("http://localhost:" + port + "/services/CxfMessageHeadersRelayTest/HeaderService/routerRelayEndpointBackend");
+            cxfEndpoint.setWsdlURL("soap_header.wsdl");
+            cxfEndpoint.setEndpointNameAsQName(
+                QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortRelay"));
+            cxfEndpoint.setServiceNameAsQName(SERVICENAME);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint routerRelayEndpointWithInsertion() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.soap.headers.HeaderTester.class);
+            cxfEndpoint.setAddress("/CxfMessageHeadersRelayTest/HeaderService/routerRelayEndpointWithInsertion");
+            cxfEndpoint.setWsdlURL("soap_header.wsdl");
+            cxfEndpoint.setEndpointNameAsQName(
+                QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortRelayWithInsertion"));
+            cxfEndpoint.setServiceNameAsQName(SERVICENAME);
+            cxfEndpoint.getFeatures().add(new LoggingFeature());
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint serviceRelayEndpointWithInsertion() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.soap.headers.HeaderTester.class);
+            cxfEndpoint.setAddress("http://localhost:" + port + "/services/CxfMessageHeadersRelayTest/HeaderService/routerRelayEndpointWithInsertionBackend");
+            cxfEndpoint.setWsdlURL("soap_header.wsdl");
+            cxfEndpoint.setEndpointNameAsQName(
+                QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortRelayWithInsertion"));
+            cxfEndpoint.setServiceNameAsQName(SERVICENAME);
+            cxfEndpoint.getFeatures().add(new LoggingFeature());
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint routerNoRelayEndpoint(HeaderFilterStrategy dropAllMessageHeadersStrategy) {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.soap.headers.HeaderTester.class);
+            cxfEndpoint.setAddress("/CxfMessageHeadersRelayTest/HeaderService/routerNoRelayEndpoint");
+            cxfEndpoint.setWsdlURL("soap_header.wsdl");
+            cxfEndpoint.setEndpointNameAsQName(
+                QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortNoRelay"));
+            cxfEndpoint.setServiceNameAsQName(SERVICENAME);
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("dataFormat", "PAYLOAD");
+            cxfEndpoint.setProperties(properties);
+            cxfEndpoint.setHeaderFilterStrategy(dropAllMessageHeadersStrategy);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint serviceNoRelayEndpoint(HeaderFilterStrategy dropAllMessageHeadersStrategy) {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.soap.headers.HeaderTester.class);
+            cxfEndpoint.setAddress("http://localhost:" + port + "/services/CxfMessageHeadersRelayTest/HeaderService/routerNoRelayEndpointBackend");
+            cxfEndpoint.setWsdlURL("soap_header.wsdl");
+            cxfEndpoint.setEndpointNameAsQName(
+                QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortNoRelay"));
+            cxfEndpoint.setServiceNameAsQName(SERVICENAME);
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("dataFormat", "PAYLOAD");
+            cxfEndpoint.setProperties(properties);
+            cxfEndpoint.setHeaderFilterStrategy(dropAllMessageHeadersStrategy);
+            return cxfEndpoint;
+        }
+        
+        
+        @Bean
+        CxfEndpoint routerNoRelayNoServiceClassEndpoint(HeaderFilterStrategy dropAllMessageHeadersStrategy) {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setAddress("/CxfMessageHeadersRelayTest/HeaderService/routerNoRelayNoServiceClassEndpoint");
+            cxfEndpoint.setWsdlURL("soap_header.wsdl");
+            cxfEndpoint.setEndpointNameAsQName(
+                QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortNoRelay"));
+            cxfEndpoint.setServiceNameAsQName(SERVICENAME);
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("dataFormat", "PAYLOAD");
+            properties.put("allowStreaming", "false");
+            cxfEndpoint.setProperties(properties);
+            cxfEndpoint.setHeaderFilterStrategy(dropAllMessageHeadersStrategy);
+            return cxfEndpoint;
+        }
+
+        @Bean
+        CxfEndpoint serviceNoRelayNoServiceClassEndpoint(HeaderFilterStrategy dropAllMessageHeadersStrategy) {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setAddress("http://localhost:" + port + "/services/CxfMessageHeadersRelayTest/HeaderService/routerNoRelayEndpointBackend");
+            cxfEndpoint.setWsdlURL("soap_header.wsdl");
+            cxfEndpoint.setEndpointNameAsQName(
+                QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortNoRelay"));
+            cxfEndpoint.setServiceNameAsQName(SERVICENAME);
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("dataFormat", "PAYLOAD");
+            cxfEndpoint.setProperties(properties);
+            cxfEndpoint.setHeaderFilterStrategy(dropAllMessageHeadersStrategy);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint serviceExtraRelays(HeaderFilterStrategy customMessageFilterStrategy) {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setAddress("/CxfMessageHeadersRelayTest/HeaderService/serviceExtraRelays");
+            cxfEndpoint.setWsdlURL("soap_header.wsdl");
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.soap.headers.HeaderTester.class);
+            cxfEndpoint.setEndpointNameAsQName(
+                QName.valueOf("{http://apache.org/camel/component/cxf/soap/headers}SoapPortCustomRelay"));
+            cxfEndpoint.setServiceNameAsQName(SERVICENAME);
+            cxfEndpoint.setHeaderFilterStrategy(customMessageFilterStrategy);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        HeaderFilterStrategy dropAllMessageHeadersStrategy() {
+            CxfHeaderFilterStrategy headerFilterStrategy = new CxfHeaderFilterStrategy();
+            headerFilterStrategy.setRelayHeaders(false);
+            return headerFilterStrategy;
+        }
+        
+        @Bean
+        HeaderFilterStrategy customMessageFilterStrategy() {
+            CxfHeaderFilterStrategy headerFilterStrategy = new CxfHeaderFilterStrategy();
+            List<MessageHeaderFilter> headerFilterList = new ArrayList<MessageHeaderFilter>();
+            headerFilterList.add(new SoapMessageHeaderFilter());
+            headerFilterList.add(new CustomHeaderFilter());
+            headerFilterStrategy.setMessageHeaderFilters(headerFilterList);
+            return headerFilterStrategy;
+        }
+        
 
         @Bean
         public RouteBuilder routeBuilder() {

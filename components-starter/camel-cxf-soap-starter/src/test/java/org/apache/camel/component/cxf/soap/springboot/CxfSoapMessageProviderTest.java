@@ -75,40 +75,7 @@ public class CxfSoapMessageProviderTest {
     static int port = CXFTestSupport.getPort1();
 
 
-    @Bean
-    public SoapTargetBean targetBean() {
-        return new SoapTargetBean();
-    }
-    
-    @Bean
-    public ParameterProcessor parameterProcessor() {
-        return new ParameterProcessor();
-    }
-    
-    @Bean
-    public JaxwsTestHandler fromEndpointJaxwsHandler() {
-        return new JaxwsTestHandler();
-    }
-    
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory(port);
-    }
-    
-    
-    @Bean
-    private CxfEndpoint soapMessageEndpoint(JaxwsTestHandler fromEndpointJaxwsHandler) {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.SoapMessageProvider.class);
-        cxfEndpoint.setAddress("/CxfSoapMessageProviderTest/SoapContext/SoapProviderPort");
-        List<Handler> handlers = new ArrayList<Handler>();
-        handlers.add(fromEndpointJaxwsHandler);
-        cxfEndpoint.setHandlers(handlers);
-        return cxfEndpoint;
-    }
-    
-    
-        
+           
     @Test
     public void testSOAPMessageModeDocLit() throws Exception {
         JaxwsTestHandler fromHandler = getMandatoryBean(JaxwsTestHandler.class, "fromEndpointJaxwsHandler");
@@ -169,6 +136,40 @@ public class CxfSoapMessageProviderTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public SoapTargetBean targetBean() {
+            return new SoapTargetBean();
+        }
+        
+        @Bean
+        public ParameterProcessor parameterProcessor() {
+            return new ParameterProcessor();
+        }
+        
+        @Bean
+        public JaxwsTestHandler fromEndpointJaxwsHandler() {
+            return new JaxwsTestHandler();
+        }
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        
+        @Bean
+        CxfEndpoint soapMessageEndpoint(JaxwsTestHandler fromEndpointJaxwsHandler) {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.SoapMessageProvider.class);
+            cxfEndpoint.setAddress("/CxfSoapMessageProviderTest/SoapContext/SoapProviderPort");
+            List<Handler> handlers = new ArrayList<Handler>();
+            handlers.add(fromEndpointJaxwsHandler);
+            cxfEndpoint.setHandlers(handlers);
+            return cxfEndpoint;
+        }
+        
+        
 
         @Bean
         public RouteBuilder routeBuilder() {

@@ -39,7 +39,8 @@ import org.apache.hello_world_soap_http.GreeterImpl;
 @DirtiesContext
 @CamelSpringBootTest
 @SpringBootTest(classes = {
-                           CamelAutoConfiguration.class, CxfGreeterMessageRouterTest.class,
+                           CamelAutoConfiguration.class, 
+                           CxfGreeterMessageRouterTest.class,
                            CxfGreeterMessageRouterTest.TestConfiguration.class,
                            AbstractCXFGreeterRouterTest.TestConfiguration.class,
                            CxfAutoConfiguration.class

@@ -97,58 +97,7 @@ public class CXFWsdlOnlyTest {
         }
     }
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory(port);
-    }
     
-    
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(SERVICE_NAME);
-        cxfEndpoint.setEndpointNameAsQName(PORT_NAME);
-        cxfEndpoint.setWsdlURL("person.wsdl");
-        cxfEndpoint.setAddress("/CXFWsdlOnlyTest/PersonService/endpoint1");
-        cxfEndpoint.setDataFormat(DataFormat.RAW);
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint serviceEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(SERVICE_NAME);
-        cxfEndpoint.setEndpointNameAsQName(PORT_NAME);
-        cxfEndpoint.setWsdlURL("person.wsdl");
-        cxfEndpoint.setAddress("http://localhost:" + port 
-                               + "/services/CXFWsdlOnlyTest/PersonService/endpoint1/backend");
-        cxfEndpoint.setDataFormat(DataFormat.RAW);
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint routerEndpoint2() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(SERVICE_NAME);
-        cxfEndpoint.setEndpointNameAsQName(PORT_NAME);
-        cxfEndpoint.setWsdlURL("person.wsdl");
-        cxfEndpoint.setAddress("/CXFWsdlOnlyTest/PersonService/endpoint2");
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint serviceEndpoint2() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(SERVICE_NAME);
-        cxfEndpoint.setEndpointNameAsQName(PORT_NAME);
-        cxfEndpoint.setWsdlURL("person.wsdl");
-        cxfEndpoint.setAddress("http://localhost:" + port 
-                               + "/services/CXFWsdlOnlyTest/PersonService/endpoint2/backend");
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        return cxfEndpoint;
-    }
-        
     @Test
     public void testRoutesWithFault() throws Exception {
         URL wsdlURL = getClass().getClassLoader().getResource("person.wsdl");
@@ -209,6 +158,59 @@ public class CXFWsdlOnlyTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(SERVICE_NAME);
+            cxfEndpoint.setEndpointNameAsQName(PORT_NAME);
+            cxfEndpoint.setWsdlURL("person.wsdl");
+            cxfEndpoint.setAddress("/CXFWsdlOnlyTest/PersonService/endpoint1");
+            cxfEndpoint.setDataFormat(DataFormat.RAW);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint serviceEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(SERVICE_NAME);
+            cxfEndpoint.setEndpointNameAsQName(PORT_NAME);
+            cxfEndpoint.setWsdlURL("person.wsdl");
+            cxfEndpoint.setAddress("http://localhost:" + port 
+                                   + "/services/CXFWsdlOnlyTest/PersonService/endpoint1/backend");
+            cxfEndpoint.setDataFormat(DataFormat.RAW);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint routerEndpoint2() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(SERVICE_NAME);
+            cxfEndpoint.setEndpointNameAsQName(PORT_NAME);
+            cxfEndpoint.setWsdlURL("person.wsdl");
+            cxfEndpoint.setAddress("/CXFWsdlOnlyTest/PersonService/endpoint2");
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint serviceEndpoint2() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(SERVICE_NAME);
+            cxfEndpoint.setEndpointNameAsQName(PORT_NAME);
+            cxfEndpoint.setWsdlURL("person.wsdl");
+            cxfEndpoint.setAddress("http://localhost:" + port 
+                                   + "/services/CXFWsdlOnlyTest/PersonService/endpoint2/backend");
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            return cxfEndpoint;
+        }
+            
 
         @Bean
         public RouteBuilder routeBuilder() {
