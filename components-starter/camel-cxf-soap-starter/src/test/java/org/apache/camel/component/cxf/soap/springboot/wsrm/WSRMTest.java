@@ -27,6 +27,9 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
+import org.apache.camel.component.cxf.wsrm.HelloWorld;
+import org.apache.camel.component.cxf.wsrm.HelloWorldImpl;
+import org.apache.camel.component.cxf.wsrm.MessageLossSimulator;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 
 

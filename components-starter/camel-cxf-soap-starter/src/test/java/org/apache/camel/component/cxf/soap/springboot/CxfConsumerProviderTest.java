@@ -72,7 +72,7 @@ public class CxfConsumerProviderTest {
     protected final String simpleEndpointAddress = "http://localhost:8080/services"
                                             + relativeAddress;
     protected final String simpleEndpointURI = "cxf://" + relativeAddress
-                                       + "?serviceClass=org.apache.camel.component.cxf.soap.springboot.ServiceProvider";
+                                       + "?serviceClass=org.apache.camel.component.cxf.ServiceProvider";
 
 
     @Autowired

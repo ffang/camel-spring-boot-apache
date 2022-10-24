@@ -29,8 +29,8 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.common.DataFormat;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
-import org.apache.camel.component.cxf.jaxws.HelloService;
-import org.apache.camel.component.cxf.jaxws.HelloServiceImpl;
+import org.apache.camel.component.cxf.HelloService;
+import org.apache.camel.component.cxf.HelloServiceImpl;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
@@ -123,7 +123,7 @@ public class FileToCxfMessageDataFormatTest {
     }
 
     private String createBody() throws Exception {
-        return "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:cxf=\"http://jaxws.cxf.component.camel.apache.org/\">\n"
+        return "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:cxf=\"http://cxf.component.camel.apache.org/\">\n"
                + "   <soapenv:Header/>\n"
                + "   <soapenv:Body>\n"
                + "      <cxf:echo>\n"

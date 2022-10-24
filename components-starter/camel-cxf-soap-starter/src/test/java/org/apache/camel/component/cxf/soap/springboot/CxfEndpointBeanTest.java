@@ -95,7 +95,7 @@ public class CxfEndpointBeanTest {
         @Bean
         CxfEndpoint routerEndpoint() {
             CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.jaxws.HelloService.class);
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.HelloService.class);
             cxfEndpoint.setAddress("/CxfEndpointBeanTest/router");
             cxfEndpoint.setContinuationTimeout(60000);
             List<String> schemaLocations = new ArrayList<String>();
@@ -110,7 +110,7 @@ public class CxfEndpointBeanTest {
         @Bean
         CxfEndpoint clientEndpoint() {
             CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.jaxws.HelloService.class);
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.HelloService.class);
             
             cxfEndpoint.setAddress("http://localhost:8080/services/CxfEndpointBeanTest/helloworld");
             

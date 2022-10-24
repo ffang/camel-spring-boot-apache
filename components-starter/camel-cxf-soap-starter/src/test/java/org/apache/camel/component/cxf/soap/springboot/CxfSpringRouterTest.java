@@ -22,8 +22,8 @@ package org.apache.camel.component.cxf.soap.springboot;
 
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
-import org.apache.camel.component.cxf.jaxws.HelloService;
-import org.apache.camel.component.cxf.jaxws.HelloServiceImpl;
+import org.apache.camel.component.cxf.HelloService;
+import org.apache.camel.component.cxf.HelloServiceImpl;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;

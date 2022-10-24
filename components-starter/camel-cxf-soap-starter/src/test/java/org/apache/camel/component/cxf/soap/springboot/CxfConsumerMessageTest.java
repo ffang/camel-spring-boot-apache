@@ -24,7 +24,7 @@ import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.cxf.common.CXFTestSupport;
-import org.apache.camel.component.cxf.jaxws.HelloService;
+import org.apache.camel.component.cxf.HelloService;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 
 import org.junit.jupiter.api.Test;
@@ -64,21 +64,21 @@ public class CxfConsumerMessageTest {
 
     private static final String TEST_MESSAGE = "Hello World!";
 
-    private static final String ECHO_METHOD = "ns1:echo xmlns:ns1=\"http://jaxws.cxf.component.camel.apache.org/\"";
+    private static final String ECHO_METHOD = "ns1:echo xmlns:ns1=\"http://cxf.component.camel.apache.org/\"";
 
     private static final String ECHO_RESPONSE = "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">"
-                                                + "<soap:Body><ns1:echoResponse xmlns:ns1=\"http://jaxws.cxf.component.camel.apache.org/\">"
-                                                + "<return xmlns=\"http://jaxws.cxf.component.camel.apache.org/\">echo Hello World!</return>"
+                                                + "<soap:Body><ns1:echoResponse xmlns:ns1=\"http://cxf.component.camel.apache.org/\">"
+                                                + "<return xmlns=\"http://cxf.component.camel.apache.org/\">echo Hello World!</return>"
                                                 + "</ns1:echoResponse></soap:Body></soap:Envelope>";
     private static final String ECHO_BOOLEAN_RESPONSE
             = "<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\">"
-              + "<soap:Body><ns1:echoBooleanResponse xmlns:ns1=\"http://jaxws.cxf.component.camel.apache.org/\">"
-              + "<return xmlns=\"http://jaxws.cxf.component.camel.apache.org/\">true</return>"
+              + "<soap:Body><ns1:echoBooleanResponse xmlns:ns1=\"http://cxf.component.camel.apache.org/\">"
+              + "<return xmlns=\"http://cxf.component.camel.apache.org/\">true</return>"
               + "</ns1:echoBooleanResponse></soap:Body></soap:Envelope>";
 
     protected final String simpleEndpointAddress = "/" + getClass().getSimpleName() + "-test";
     protected final String simpleEndpointURI = "cxf://" + simpleEndpointAddress
-                                               + "?serviceClass=org.apache.camel.component.cxf.jaxws.HelloService";
+                                               + "?serviceClass=org.apache.camel.component.cxf.HelloService";
 
     static int port = CXFTestSupport.getPort1();
 
