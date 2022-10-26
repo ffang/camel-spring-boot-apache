@@ -92,50 +92,7 @@ public class CxfTimeoutTest {
         endpoint.stop();
     }
     
-    @Bean
-    private HostnameVerifier defaultHostnameVerifier() {
-        return new org.apache.cxf.transport.https.httpclient.DefaultHostnameVerifier();
-    }
     
-    @Bean
-    private MyCxfConfigurer myConfigurer() {
-        return new MyCxfConfigurer();
-    }
-    
-    @Bean
-    private OrigCxfConfigurer origConfigurer() {
-        return new OrigCxfConfigurer();
-    }
-    
-    @Bean
-    private SSLContextParameters mySslContext() {
-        SSLContextParameters sslContext = new SSLContextParameters();
-        KeyManagersParameters keyManager = new KeyManagersParameters();
-        keyManager.setKeyPassword("changeit");
-        KeyStoreParameters keyStore = new KeyStoreParameters();
-        keyStore.setPassword("changeit");
-        keyStore.setResource("/localhost.p12");
-        keyManager.setKeyStore(keyStore);
-        sslContext.setKeyManagers(keyManager);
-        return sslContext;
-    }
-    
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() throws InterruptedException {
-        ServletWebServerFactory webServerFactory = new UndertowServletWebServerFactory(port);
-        return webServerFactory;
-    }
-
-    
-    @Bean
-    private CxfEndpoint springEndpoint() {
-        
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
-        cxfEndpoint.setAddress(JAXWS_SERVER_ADDRESS);
-        cxfEndpoint.setCxfConfigurer(new OrigCxfConfigurer());
-        return cxfEndpoint;
-    }
 
     @Test
     public void testInvokingJaxWsServerWithBusUriParams() throws Exception {
@@ -244,6 +201,51 @@ public class CxfTimeoutTest {
     @Configuration
     public class TestConfiguration {
 
+        @Bean
+        HostnameVerifier defaultHostnameVerifier() {
+            return new org.apache.cxf.transport.https.httpclient.DefaultHostnameVerifier();
+        }
+        
+        @Bean
+        MyCxfConfigurer myConfigurer() {
+            return new MyCxfConfigurer();
+        }
+        
+        @Bean
+        OrigCxfConfigurer origConfigurer() {
+            return new OrigCxfConfigurer();
+        }
+        
+        @Bean
+        SSLContextParameters mySslContext() {
+            SSLContextParameters sslContext = new SSLContextParameters();
+            KeyManagersParameters keyManager = new KeyManagersParameters();
+            keyManager.setKeyPassword("changeit");
+            KeyStoreParameters keyStore = new KeyStoreParameters();
+            keyStore.setPassword("changeit");
+            keyStore.setResource("/localhost.p12");
+            keyManager.setKeyStore(keyStore);
+            sslContext.setKeyManagers(keyManager);
+            return sslContext;
+        }
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() throws InterruptedException {
+            ServletWebServerFactory webServerFactory = new UndertowServletWebServerFactory(port);
+            return webServerFactory;
+        }
+
+        
+        @Bean
+        CxfEndpoint springEndpoint() {
+            
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
+            cxfEndpoint.setAddress(JAXWS_SERVER_ADDRESS);
+            cxfEndpoint.setCxfConfigurer(new OrigCxfConfigurer());
+            return cxfEndpoint;
+        }
+        
         @Bean
         public RouteBuilder routeBuilder() {
             return new RouteBuilder() {

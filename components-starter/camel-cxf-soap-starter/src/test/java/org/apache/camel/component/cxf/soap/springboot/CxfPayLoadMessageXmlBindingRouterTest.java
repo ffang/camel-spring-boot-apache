@@ -57,7 +57,8 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 @DirtiesContext
 @CamelSpringBootTest
 @SpringBootTest(classes = {
-                           CamelAutoConfiguration.class, CxfPayLoadMessageXmlBindingRouterTest.class,
+                           CamelAutoConfiguration.class, 
+                           CxfPayLoadMessageXmlBindingRouterTest.class,
                            CxfPayLoadMessageXmlBindingRouterTest.TestConfiguration.class,
                            CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -85,34 +86,7 @@ public class CxfPayLoadMessageXmlBindingRouterTest {
         server.start();
     }
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() throws InterruptedException {
-        ServletWebServerFactory webServerFactory = new UndertowServletWebServerFactory(port);
-        return webServerFactory;
-    }
-
     
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.HelloService.class);
-        cxfEndpoint.setAddress(ROUTER_ADDRESS);
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        cxfEndpoint.setBindingId(getBindingId());
-        return cxfEndpoint;
-    }
-
-    @Bean
-    private CxfEndpoint serviceEndpoint() {
-        
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.HelloService.class);
-        cxfEndpoint.setAddress("http://localhost:" 
-            + port  + "/services" + SERVICE_ADDRESS);
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        cxfEndpoint.setBindingId(getBindingId());
-        return cxfEndpoint;
-    }
     
     protected HelloService getCXFClient() throws Exception {
         ClientProxyFactoryBean proxyFactory = new ClientProxyFactoryBean();
@@ -144,6 +118,35 @@ public class CxfPayLoadMessageXmlBindingRouterTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() throws InterruptedException {
+            ServletWebServerFactory webServerFactory = new UndertowServletWebServerFactory(port);
+            return webServerFactory;
+        }
+
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.HelloService.class);
+            cxfEndpoint.setAddress(ROUTER_ADDRESS);
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            cxfEndpoint.setBindingId(getBindingId());
+            return cxfEndpoint;
+        }
+
+        @Bean
+        CxfEndpoint serviceEndpoint() {
+            
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.HelloService.class);
+            cxfEndpoint.setAddress("http://localhost:" 
+                + port  + "/services" + SERVICE_ADDRESS);
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            cxfEndpoint.setBindingId(getBindingId());
+            return cxfEndpoint;
+        }
 
         @Bean
         public RouteBuilder routeBuilder() {

@@ -43,7 +43,8 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 @DirtiesContext
 @CamelSpringBootTest
 @SpringBootTest(classes = {
-                           CamelAutoConfiguration.class, CxfComponentEnableMtomTest.class,
+                           CamelAutoConfiguration.class, 
+                           CxfComponentEnableMtomTest.class,
                            CxfComponentEnableMtomTest.TestConfig.class,
                            CxfAutoConfiguration.class
 })

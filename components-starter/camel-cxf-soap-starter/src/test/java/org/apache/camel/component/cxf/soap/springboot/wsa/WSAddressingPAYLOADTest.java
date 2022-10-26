@@ -27,6 +27,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.common.DataFormat;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
@@ -85,43 +86,8 @@ public class WSAddressingPAYLOADTest {
 
     private Server serviceEndpoint;
     
-    private String port = "8080";
+    static int port = CXFTestSupport.getPort1();
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
-    
-    
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(serviceName);
-        cxfEndpoint.setEndpointNameAsQName(endpointName);
-        cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
-        cxfEndpoint.setWsdlURL(WSAddressingPAYLOADTest.class.getResource("/wsdl/hello_world.wsdl").toString());
-        cxfEndpoint.setAddress("/WSAddressingPAYLOADTest/SoapContext/SoapPort");
-        cxfEndpoint.getInInterceptors().add(new org.apache.cxf.ext.logging.LoggingInInterceptor());
-        cxfEndpoint.getOutInterceptors().add(new org.apache.cxf.ext.logging.LoggingOutInterceptor());
-        cxfEndpoint.getFeatures().add(new org.apache.cxf.ws.addressing.WSAddressingFeature());
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint serviceEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(serviceName);
-        cxfEndpoint.setEndpointNameAsQName(endpointName);
-        cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
-        cxfEndpoint.setWsdlURL(WSAddressingPAYLOADTest.class.getResource("/wsdl/hello_world.wsdl").toString());
-        cxfEndpoint.setAddress("http://localhost:" + port 
-                               + "/services/WSAddressingPAYLOADTest/SoapContext/backendService");
-        cxfEndpoint.getInInterceptors().add(new org.apache.cxf.ext.logging.LoggingInInterceptor());
-        cxfEndpoint.getOutInterceptors().add(new org.apache.cxf.ext.logging.LoggingOutInterceptor());
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        return cxfEndpoint;
-    }
     
     @BeforeEach
     public void setUp() throws Exception {
@@ -167,6 +133,43 @@ public class WSAddressingPAYLOADTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(serviceName);
+            cxfEndpoint.setEndpointNameAsQName(endpointName);
+            cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
+            cxfEndpoint.setWsdlURL(WSAddressingPAYLOADTest.class.getResource("/wsdl/hello_world.wsdl").toString());
+            cxfEndpoint.setAddress("/WSAddressingPAYLOADTest/SoapContext/SoapPort");
+            cxfEndpoint.getInInterceptors().add(new org.apache.cxf.ext.logging.LoggingInInterceptor());
+            cxfEndpoint.getOutInterceptors().add(new org.apache.cxf.ext.logging.LoggingOutInterceptor());
+            cxfEndpoint.getFeatures().add(new org.apache.cxf.ws.addressing.WSAddressingFeature());
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint serviceEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(serviceName);
+            cxfEndpoint.setEndpointNameAsQName(endpointName);
+            cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
+            cxfEndpoint.setWsdlURL(WSAddressingPAYLOADTest.class.getResource("/wsdl/hello_world.wsdl").toString());
+            cxfEndpoint.setAddress("http://localhost:" + port 
+                                   + "/services/WSAddressingPAYLOADTest/SoapContext/backendService");
+            cxfEndpoint.getInInterceptors().add(new org.apache.cxf.ext.logging.LoggingInInterceptor());
+            cxfEndpoint.getOutInterceptors().add(new org.apache.cxf.ext.logging.LoggingOutInterceptor());
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            return cxfEndpoint;
+        }
+        
 
         @Bean
         public RouteBuilder routeBuilder() {
@@ -175,12 +178,9 @@ public class WSAddressingPAYLOADTest {
                 public void configure() {
                     from("cxf:bean:routerEndpoint").process(new Processor() {
                         public void process(final Exchange exchange) throws Exception {
-                            //need to remove the addressing header, since the back end service doesn't support addressing
                             List<?> headerList = (List<?>) exchange.getIn().getHeader(Header.HEADER_LIST);
                             assertNotNull(headerList, "We should get the header list.");
                             assertEquals(4, headerList.size(), "Get a wrong size of header list.");
-                            // we don't need send the soap headers to the client
-                            exchange.getIn().removeHeader(Header.HEADER_LIST);
                         }
                     }).to("cxf:bean:serviceEndpoint");
                 }

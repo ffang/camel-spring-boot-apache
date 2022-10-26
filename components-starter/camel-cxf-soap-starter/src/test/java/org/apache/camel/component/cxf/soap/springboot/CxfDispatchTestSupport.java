@@ -24,6 +24,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 
 import org.junit.jupiter.api.AfterEach;
@@ -34,6 +35,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
 import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
@@ -50,11 +52,7 @@ public abstract class CxfDispatchTestSupport {
 
     
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
-
+   
     protected static final String DISPATCH_NS = "http://camel.apache.org/cxf/jaxws/dispatch";
     protected static final String INVOKE_NAME = "Invoke";
     protected static final String INVOKE_ONEWAY_NAME = "InvokeOneWay";
@@ -72,6 +70,8 @@ public abstract class CxfDispatchTestSupport {
               + PAYLOAD_ONEWAY_TEMPLATE
               + "</soap:Body></soap:Envelope>";
     private static DocumentBuilderFactory documentBuilderFactory;
+    
+    static int port = CXFTestSupport.getPort1();
 
     protected Endpoint endpoint;
     
@@ -110,4 +110,14 @@ public abstract class CxfDispatchTestSupport {
         }
         return documentBuilderFactory;
     }
+    
+    @Configuration
+    class ServletConfiguration {
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory();
+        }
+
+    }
+    
 }

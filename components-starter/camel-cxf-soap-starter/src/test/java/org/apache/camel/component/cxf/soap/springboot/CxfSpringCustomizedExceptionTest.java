@@ -26,6 +26,7 @@ import org.apache.camel.ExchangePattern;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.common.message.CxfConstants;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
@@ -52,7 +53,8 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 @DirtiesContext
 @CamelSpringBootTest
 @SpringBootTest(classes = {
-                           CamelAutoConfiguration.class, CxfSpringCustomizedExceptionTest.class,
+                           CamelAutoConfiguration.class, 
+                           CxfSpringCustomizedExceptionTest.class,
                            CxfSpringCustomizedExceptionTest.TestConfiguration.class,
                            CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -61,6 +63,7 @@ public class CxfSpringCustomizedExceptionTest {
     private static final String EXCEPTION_MESSAGE = "This is an exception test message";
     private static final String DETAIL_TEXT = "This is a detail text node";
     private static final SoapFault SOAP_FAULT;
+    static int port = CXFTestSupport.getPort1();
 
     static {
         // START SNIPPET: FaultDefine
@@ -72,24 +75,14 @@ public class CxfSpringCustomizedExceptionTest {
         // END SNIPPET: FaultDefine
     }
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
     
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.HelloService.class);
-        cxfEndpoint.setAddress("/CxfSpringCustomizedExceptionTest/router");
-        return cxfEndpoint;
-    }
     
     @Bean
     private CxfEndpoint serviceEndpoint() {
         CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
         cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.HelloService.class);
-        cxfEndpoint.setAddress("http://localhost:8080/services/CxfSpringCustomizedExceptionTest/router");
+        cxfEndpoint.setAddress("http://localhost:" + port 
+                               + "/services/CxfSpringCustomizedExceptionTest/router");
         return cxfEndpoint;
     }
 
@@ -118,6 +111,19 @@ public class CxfSpringCustomizedExceptionTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.HelloService.class);
+            cxfEndpoint.setAddress("/CxfSpringCustomizedExceptionTest/router");
+            return cxfEndpoint;
+        }
 
         @Bean
         public RouteBuilder routeBuilder() {

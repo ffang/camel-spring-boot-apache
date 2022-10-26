@@ -53,8 +53,10 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 @DirtiesContext
 @CamelSpringBootTest
 @SpringBootTest(classes = {
-                           CamelAutoConfiguration.class, CxfDispatchPayloadTest.class,
+                           CamelAutoConfiguration.class, 
+                           CxfDispatchPayloadTest.class,
                            CxfDispatchPayloadTest.TestConfiguration.class,
+                           CxfDispatchTestSupport.ServletConfiguration.class,
                            CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CxfDispatchPayloadTest extends CxfDispatchTestSupport {
@@ -62,16 +64,7 @@ public class CxfDispatchPayloadTest extends CxfDispatchTestSupport {
     @Autowired
     ProducerTemplate template;
     
-    @Bean
-    private CxfEndpoint serviceEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        
-        cxfEndpoint.setAddress("http://localhost:8080/services" 
-            + "/CxfDispatchPayloadTest/SoapContext/GreeterPort");
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        cxfEndpoint.setSynchronous(true);
-        return cxfEndpoint;
-    }
+    
     @Test
     public void testDispatchPayload() throws Exception {
         final String name = "Tila";
@@ -142,6 +135,17 @@ public class CxfDispatchPayloadTest extends CxfDispatchTestSupport {
     @Configuration
     public class TestConfiguration {
 
+        @Bean
+        CxfEndpoint serviceEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            
+            cxfEndpoint.setAddress("http://localhost:8080/services" 
+                + "/CxfDispatchPayloadTest/SoapContext/GreeterPort");
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            cxfEndpoint.setSynchronous(true);
+            return cxfEndpoint;
+        }
+        
         @Bean
         public RouteBuilder routeBuilder() {
             return new RouteBuilder() {

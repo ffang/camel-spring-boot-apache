@@ -49,8 +49,10 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 @DirtiesContext
 @CamelSpringBootTest
 @SpringBootTest(classes = {
-                           CamelAutoConfiguration.class, CxfDispatchMessageTest.class,
+                           CamelAutoConfiguration.class, 
+                           CxfDispatchMessageTest.class,
                            CxfDispatchMessageTest.TestConfiguration.class,
+                           CxfDispatchTestSupport.ServletConfiguration.class,
                            CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class CxfDispatchMessageTest extends CxfDispatchTestSupport {
@@ -60,16 +62,7 @@ public class CxfDispatchMessageTest extends CxfDispatchTestSupport {
     
     
     
-    @Bean
-    private CxfEndpoint serviceEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        
-        cxfEndpoint.setAddress("http://localhost:8080/services" 
-            + "/CxfDispatchMessageTest/SoapContext/GreeterPort");
-        cxfEndpoint.setDataFormat(DataFormat.RAW);
-        cxfEndpoint.setSynchronous(true);
-        return cxfEndpoint;
-    }
+    
     
     @Test
     public void testDipatchMessage() throws Exception {
@@ -139,6 +132,17 @@ public class CxfDispatchMessageTest extends CxfDispatchTestSupport {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        CxfEndpoint serviceEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            
+            cxfEndpoint.setAddress("http://localhost:8080/services" 
+                + "/CxfDispatchMessageTest/SoapContext/GreeterPort");
+            cxfEndpoint.setDataFormat(DataFormat.RAW);
+            cxfEndpoint.setSynchronous(true);
+            return cxfEndpoint;
+        }
 
         @Bean
         public RouteBuilder routeBuilder() {
