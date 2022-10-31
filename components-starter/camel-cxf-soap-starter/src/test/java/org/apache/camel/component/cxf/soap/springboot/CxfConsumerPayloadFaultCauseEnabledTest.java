@@ -33,6 +33,7 @@ import javax.xml.ws.soap.SOAPFaultException;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
@@ -75,27 +76,8 @@ public class CxfConsumerPayloadFaultCauseEnabledTest {
     protected static final QName SERVICE_QNAME = new QName("http://camel.apache.org/wsdl-first", "PersonService");
     protected static final QName PORT_QNAME = new QName("http://camel.apache.org/wsdl-first", "soap");
 
+    static int port = CXFTestSupport.getPort1();
     
-    
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
-    
-    
-    @Bean
-    private CxfEndpoint consumerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(SERVICE_QNAME);
-        cxfEndpoint.setEndpointNameAsQName(PORT_QNAME);
-        cxfEndpoint.setAddress("/CxfConsumerPayloadFaultCauseEnabledTest/PersonService");
-        cxfEndpoint.setWsdlURL("classpath:person.wsdl");
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("dataFormat", "PAYLOAD");
-        properties.put("exceptionMessageCauseEnabled", "true");
-        cxfEndpoint.setProperties(properties);
-        return cxfEndpoint;
-    }
     
     @Test
     public void testInvokingFromCxfClient() throws Exception {
@@ -110,7 +92,8 @@ public class CxfConsumerPayloadFaultCauseEnabledTest {
         c.getOutInterceptors().add(new LoggingOutInterceptor());
         ((BindingProvider) client).getRequestContext()
                 .put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY, 
-                     "http://localhost:8080/services/CxfConsumerPayloadFaultCauseEnabledTest/PersonService");
+                     "http://localhost:" + port 
+                     + "/services/CxfConsumerPayloadFaultCauseEnabledTest/PersonService");
 
         Holder<String> personId = new Holder<>();
         personId.value = "";
@@ -133,6 +116,27 @@ public class CxfConsumerPayloadFaultCauseEnabledTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        
+        @Bean
+        CxfEndpoint consumerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(SERVICE_QNAME);
+            cxfEndpoint.setEndpointNameAsQName(PORT_QNAME);
+            cxfEndpoint.setAddress("/CxfConsumerPayloadFaultCauseEnabledTest/PersonService");
+            cxfEndpoint.setWsdlURL("classpath:person.wsdl");
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("dataFormat", "PAYLOAD");
+            properties.put("exceptionMessageCauseEnabled", "true");
+            cxfEndpoint.setProperties(properties);
+            return cxfEndpoint;
+        }
+        
 
         @Bean
         public RouteBuilder routeBuilder() {

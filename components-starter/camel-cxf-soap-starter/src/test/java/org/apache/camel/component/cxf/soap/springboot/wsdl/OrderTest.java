@@ -31,6 +31,7 @@ import org.apache.camel.EndpointInject;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
 import org.apache.camel.component.cxf.wsdl.OrderEndpoint;
@@ -73,25 +74,14 @@ public class OrderTest {
     @EndpointInject("mock:end")
     MockEndpoint mock;
     
-    
+    static int port = CXFTestSupport.getPort1();
 
         
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
-    
-    @Bean
-    private CxfEndpoint orderEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceClass(OrderEndpoint.class);
-        cxfEndpoint.setAddress("/camel-order/");
-        return cxfEndpoint;
-    }
     
     @Test
     public void testCamelWsdl() throws Exception {
-        Object body = template.sendBody("http://localhost:8080/services" + "/camel-order/?wsdl",
+        Object body = template.sendBody("http://localhost:" + port 
+                                        + "/services" + "/camel-order/?wsdl",
                 ExchangePattern.InOut, null);
         InputStream is = context.getTypeConverter().convertTo(InputStream.class, body);
         checkWsdl(is);
@@ -101,7 +91,8 @@ public class OrderTest {
     public void testCxfWsdl() throws Exception {
         Object implementor = new OrderEndpoint();
         Endpoint.publish("/cxf-order/", implementor);
-        Object body = template.sendBody("http://localhost:8080/services" + "/cxf-order/?wsdl",
+        Object body = template.sendBody("http://localhost:" + port 
+                                        + "/services" + "/cxf-order/?wsdl",
                 ExchangePattern.InOut, null);
         InputStream is = context.getTypeConverter().convertTo(InputStream.class, body);
         checkWsdl(is);
@@ -133,6 +124,20 @@ public class OrderTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        @Bean
+        CxfEndpoint orderEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(OrderEndpoint.class);
+            cxfEndpoint.setAddress("/camel-order/");
+            return cxfEndpoint;
+        }
+        
 
         @Bean
         public RouteBuilder routeBuilder() {

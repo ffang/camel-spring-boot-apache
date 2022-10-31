@@ -35,6 +35,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.cxf.PizzaImpl;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.common.CxfPayload;
 import org.apache.camel.component.cxf.common.DataFormat;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
@@ -79,6 +80,8 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 public class CxfPayLoadSoapHeaderSpringTest {
     
     private final QName serviceName = new QName("http://camel.apache.org/pizza", "PizzaService");
+    
+    static int port = CXFTestSupport.getPort1();
 
     protected void start(String n) {
         Object implementor = new PizzaImpl();
@@ -93,31 +96,6 @@ public class CxfPayLoadSoapHeaderSpringTest {
     }
 
        
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
-    
-    
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setWsdlURL("pizza_service.wsdl");
-        cxfEndpoint.setAddress("/" + getClass().getSimpleName() 
-                               + "/pizza_service/services/PizzaService");
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        return cxfEndpoint;
-    }
-    
-    @Bean
-    private CxfEndpoint serviceEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setWsdlURL("pizza_service.wsdl");
-        cxfEndpoint.setAddress("http://localhost:8080/services/" + getClass().getSimpleName() 
-                               + "/new_pizza_service/services/PizzaService");
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        return cxfEndpoint;
-    }
     
     @Test
     public void testPizzaService() {
@@ -147,7 +125,7 @@ public class CxfPayLoadSoapHeaderSpringTest {
         Pizza pizza = service.getPizzaPort();
         ((BindingProvider) pizza).getRequestContext()
                 .put(BindingProvider.ENDPOINT_ADDRESS_PROPERTY,
-                        "http://localhost:" + 8080 + "/services/" + getClass().getSimpleName()
+                        "http://localhost:" + port + "/services/" + getClass().getSimpleName()
                                                                 + "/pizza_service/services/PizzaService");
         return pizza;
     }
@@ -162,6 +140,34 @@ public class CxfPayLoadSoapHeaderSpringTest {
     @Configuration
     public class TestConfiguration {
 
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setWsdlURL("pizza_service.wsdl");
+            cxfEndpoint.setAddress("/" + "CxfPayLoadSoapHeaderSpringTest" 
+                                   + "/pizza_service/services/PizzaService");
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint serviceEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setWsdlURL("pizza_service.wsdl");
+            cxfEndpoint.setAddress("http://localhost:" + port  
+                                   + "/services/" + "CxfPayLoadSoapHeaderSpringTest" 
+                                   + "/new_pizza_service/services/PizzaService");
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            return cxfEndpoint;
+        }
+        
+        
         @Bean
         public RouteBuilder routeBuilder() {
             return new RouteBuilder() {

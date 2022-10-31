@@ -67,17 +67,7 @@ public class CxfEndpointJMSConsumerTest {
                      + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL="
                      + "vm://localhost";
         
-    @Bean
-    private CxfEndpoint jmsEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(serviceName);
-        cxfEndpoint.setEndpointNameAsQName(endpointName);
-        cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
-        cxfEndpoint.setAddress(address);
-        cxfEndpoint.getInInterceptors().add(new org.apache.cxf.ext.logging.LoggingInInterceptor());
-        cxfEndpoint.getOutInterceptors().add(new org.apache.cxf.ext.logging.LoggingOutInterceptor());
-        return cxfEndpoint;
-    }
+    
     
     @Test
     public void testInvocation() {
@@ -102,6 +92,18 @@ public class CxfEndpointJMSConsumerTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        CxfEndpoint jmsEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(serviceName);
+            cxfEndpoint.setEndpointNameAsQName(endpointName);
+            cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
+            cxfEndpoint.setAddress(address);
+            cxfEndpoint.getInInterceptors().add(new org.apache.cxf.ext.logging.LoggingInInterceptor());
+            cxfEndpoint.getOutInterceptors().add(new org.apache.cxf.ext.logging.LoggingOutInterceptor());
+            return cxfEndpoint;
+        }
 
         @Bean
         public RouteBuilder routeBuilder() {

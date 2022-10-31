@@ -31,6 +31,7 @@ import org.apache.camel.Exchange;
 import org.apache.camel.ExchangePattern;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.common.DataFormat;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.jaxws.DefaultCxfBinding;
@@ -76,6 +77,8 @@ public class CxfOneWayRouteTest {
     private static Exception bindingException;
     private static boolean bindingDone;
     private static boolean onCompeletedCalled;
+    
+    static int port = CXFTestSupport.getPort1();
 
     @BeforeEach
     public void setup() {
@@ -84,33 +87,12 @@ public class CxfOneWayRouteTest {
         onCompeletedCalled = false;
     }
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
-    
-    
-    @Bean
-    private CxfEndpoint routerEndpoint() {
-        CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-        cxfEndpoint.setServiceNameAsQName(SERVICE_NAME);
-        cxfEndpoint.setEndpointNameAsQName(PORT_NAME);
-        cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.GreeterImpl.class);
-        cxfEndpoint.setAddress(ROUTER_ADDRESS);
-        cxfEndpoint.getInInterceptors().add(new org.apache.cxf.ext.logging.LoggingInInterceptor());
-        cxfEndpoint.getOutInterceptors().add(new org.apache.cxf.ext.logging.LoggingOutInterceptor());
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put("org.apache.cxf.oneway.robust", true);
-        cxfEndpoint.setProperties(properties);
-        cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
-        cxfEndpoint.setCxfBinding(new TestCxfBinding());
-        return cxfEndpoint;
-    }
     
     protected Greeter getCXFClient() throws Exception {
         Service service = Service.create(SERVICE_NAME);
         service.addPort(PORT_NAME, "http://schemas.xmlsoap.org/soap/", 
-                        "http://localhost:8080/services" + ROUTER_ADDRESS);
+                        "http://localhost:" + port 
+                        + "/services" + ROUTER_ADDRESS);
         Greeter greeter = service.getPort(PORT_NAME, Greeter.class);
         return greeter;
     }
@@ -151,6 +133,30 @@ public class CxfOneWayRouteTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
+        
+        @Bean
+        CxfEndpoint routerEndpoint() {
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceNameAsQName(SERVICE_NAME);
+            cxfEndpoint.setEndpointNameAsQName(PORT_NAME);
+            cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.GreeterImpl.class);
+            cxfEndpoint.setAddress(ROUTER_ADDRESS);
+            cxfEndpoint.getInInterceptors().add(new org.apache.cxf.ext.logging.LoggingInInterceptor());
+            cxfEndpoint.getOutInterceptors().add(new org.apache.cxf.ext.logging.LoggingOutInterceptor());
+            Map<String, Object> properties = new HashMap<String, Object>();
+            properties.put("org.apache.cxf.oneway.robust", true);
+            cxfEndpoint.setProperties(properties);
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            cxfEndpoint.setCxfBinding(new TestCxfBinding());
+            return cxfEndpoint;
+        }
+        
 
         @Bean
         public RouteBuilder routeBuilder() {

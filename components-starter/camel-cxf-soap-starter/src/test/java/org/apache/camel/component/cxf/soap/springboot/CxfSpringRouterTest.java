@@ -24,6 +24,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.HelloService;
 import org.apache.camel.component.cxf.HelloServiceImpl;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -61,6 +62,8 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 public class CxfSpringRouterTest {
     
     protected Server server;
+    
+    static int port = CXFTestSupport.getPort1();
 
     @BeforeEach
     public void startService() {
@@ -82,10 +85,6 @@ public class CxfSpringRouterTest {
     }
 
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
     
     
     @Bean
@@ -100,14 +99,16 @@ public class CxfSpringRouterTest {
     private CxfEndpoint serviceEndpoint() {
         CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
         cxfEndpoint.setServiceClass(HelloService.class);
-        cxfEndpoint.setAddress("http://localhost:8080/services/CxfSpringRouterTest/helloworld");
+        cxfEndpoint.setAddress("http://localhost:" + port 
+                               + "/services/CxfSpringRouterTest/helloworld");
         return cxfEndpoint;
     }
     
     protected HelloService getCXFClient() throws Exception {
         ClientProxyFactoryBean proxyFactory = new ClientProxyFactoryBean();
         ClientFactoryBean clientBean = proxyFactory.getClientFactoryBean();
-        clientBean.setAddress("http://localhost:8080/services/CxfSpringRouterTest/router");
+        clientBean.setAddress("http://localhost:" + port 
+                              + "/services/CxfSpringRouterTest/router");
         clientBean.setServiceClass(HelloService.class);
 
         HelloService client = (HelloService) proxyFactory.create();
@@ -140,6 +141,12 @@ public class CxfSpringRouterTest {
 
     @Configuration
     public class TestConfiguration {
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
 
         @Bean
         public RouteBuilder routeBuilder() {
