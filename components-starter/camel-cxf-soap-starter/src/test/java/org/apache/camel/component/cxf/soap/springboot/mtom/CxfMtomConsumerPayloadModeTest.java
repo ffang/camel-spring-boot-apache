@@ -93,7 +93,7 @@ public class CxfMtomConsumerPayloadModeTest {
             return;
         }
 
-        template.send("cxf:bean:consumerEndpoint", new Processor() {
+        Exchange exchange = template.send("cxf:bean:consumerEndpoint", new Processor() {
 
             public void process(Exchange exchange) throws Exception {
                 exchange.setPattern(ExchangePattern.InOut);
@@ -110,6 +110,7 @@ public class CxfMtomConsumerPayloadModeTest {
                         new DataHandler(new ByteArrayDataSource(MtomTestHelper.requestJpeg, "image/jpeg")));
             }
         });
+        assertEquals(exchange.getIn(AttachmentMessage.class).getAttachments().size(), 2);
     }
 
     protected String getRequestMessage() {
@@ -188,11 +189,11 @@ public class CxfMtomConsumerPayloadModeTest {
                             CxfPayload<SoapHeader> sbody = new CxfPayload<>(
                                     new ArrayList<SoapHeader>(),
                                     elements, null);
-                            exchange.getMessage().setBody(sbody);
-                            exchange.getMessage(AttachmentMessage.class).addAttachment(MtomTestHelper.RESP_PHOTO_CID,
+                            exchange.getIn().setBody(sbody);
+                            exchange.getIn(AttachmentMessage.class).addAttachment(MtomTestHelper.RESP_PHOTO_CID,
                                     new DataHandler(new ByteArrayDataSource(MtomTestHelper.RESP_PHOTO_DATA, "application/octet-stream")));
 
-                            exchange.getMessage(AttachmentMessage.class).addAttachment(MtomTestHelper.RESP_IMAGE_CID,
+                            exchange.getIn(AttachmentMessage.class).addAttachment(MtomTestHelper.RESP_IMAGE_CID,
                                     new DataHandler(new ByteArrayDataSource(MtomTestHelper.responseJpeg, "image/jpeg")));
 
                         }

@@ -19,9 +19,8 @@ package org.apache.camel.component.cxf.soap.springboot.undertowhandler;
 
 
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.io.File;
+import java.io.IOException;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -41,18 +40,23 @@ import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
+import org.xnio.OptionMap;
+import org.xnio.Options;
+import org.xnio.Xnio;
+import org.xnio.XnioWorker;
 
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import io.undertow.Undertow;
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
-import io.undertow.server.handlers.DisallowedMethodsHandler;
-import io.undertow.server.handlers.RequestLimitingHandler;
+import io.undertow.server.handlers.accesslog.AccessLogHandler;
+import io.undertow.server.handlers.accesslog.AccessLogReceiver;
+import io.undertow.server.handlers.accesslog.DefaultAccessLogReceiver;
 import io.undertow.servlet.api.DeploymentInfo;
-import io.undertow.util.HttpString;
 
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.apache.cxf.jaxws.JaxWsProxyFactoryBean;
@@ -64,64 +68,38 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 @SpringBootTest(
     classes = {
         CamelAutoConfiguration.class,
-        RequestLimitingHandlerTest.class,
-        RequestLimitingHandlerTest.TestConfiguration.class,
+        AccessLogHandlerTest.class,
+        AccessLogHandlerTest.TestConfiguration.class,
         CxfAutoConfiguration.class
         
     }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
-public class RequestLimitingHandlerTest {
+public class AccessLogHandlerTest {
     
     
     static int port = CXFTestSupport.getPort1();
     
     @Test
-    public void testClient() throws Exception {
+    public void testLog() throws Exception {
 
         JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
         factory.setAddress("http://localhost:" + port + "/services/"
                            + getClass().getSimpleName() + "/CamelContext/RouterPort");
         factory.setServiceClass(Person.class);
         Person person = factory.create(Person.class);
-        CountDownLatch latch = new CountDownLatch(50); 
+        GetPerson payload = new GetPerson();
+        payload.setPersonId("1234");
 
-        ExecutorService executor = Executors.newFixedThreadPool(200); 
-
-        for (int i = 0; i < 50; i++) {
-            executor.execute(new SendRequest(person, latch)); 
-        }
-        latch.await();
+        GetPersonResponse reply = person.getPerson(payload);
+        assertEquals("1234", reply.getPersonId(), "Get the wrong person id.");
+        Thread.sleep(3000);
+        File logFile = new File("target/request.log");
+        assertTrue(logFile.exists());
     }
     
-    class SendRequest implements Runnable {
-        Person person;
-        CountDownLatch latch;
-        SendRequest(Person person, CountDownLatch latch) {
-            this.person = person;
-            this.latch = latch;
-        }
-        @Override
-        public void run() {
-            try {
-                GetPerson payload = new GetPerson();
-                payload.setPersonId("1234");
-
-                GetPersonResponse reply = person.getPerson(payload);
-                assertEquals("1234", reply.getPersonId(), "Get the wrong person id.");
-
-            } catch (Exception ex) {
-                //some requests are expected to fail and receive 503 error
-                //cause Server side limit the concurrent request
-                assertTrue(ex.getCause().getMessage().contains("503: Service Unavailable"));
-            } finally {
-                latch.countDown();
-            }
-
-        }
-
-    }
-
-            
+    
+    
+              
 
     // *************************************
     // Config
@@ -142,9 +120,28 @@ public class RequestLimitingHandlerTest {
                     deploymentInfo.addOuterHandlerChainWrapper(new HandlerWrapper() {
                         @Override
                         public HttpHandler wrap(HttpHandler handler) {
-                            
-                            return new DisallowedMethodsHandler(new RequestLimitingHandler(3, 1, handler), 
-                                                                new HttpString("GET"));
+                            XnioWorker xnioWorker = createWorker(this.getClass().getClassLoader());
+                            AccessLogReceiver logReceiver = DefaultAccessLogReceiver.builder()
+                                .setLogWriteExecutor(xnioWorker)
+                                .setOutputDirectory(new File("target").toPath())
+                                .setLogBaseName("request.")
+                                .setLogNameSuffix("log").setRotate(true).build();
+                            AccessLogHandler accessLogHandler = new AccessLogHandler(handler, logReceiver, "combined",
+                                                                                     AccessLogHandlerTest.class.getClassLoader());
+                            return accessLogHandler;
+                        }
+
+                        private XnioWorker createWorker(ClassLoader loader) {
+                            try {
+                                if (loader == null) {
+                                    loader = Undertow.class.getClassLoader();
+                                }
+                                Xnio xnio = Xnio.getInstance(loader);
+                                return xnio.createWorker(OptionMap.builder().set(Options.THREAD_DAEMON, true).getMap());
+                            } catch (IOException ignore) {
+
+                                return null;
+                            }
                         }
                     });
                 }
@@ -156,7 +153,7 @@ public class RequestLimitingHandlerTest {
         @Bean
         public CxfEndpoint routerEndpoint() {
             CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-            cxfEndpoint.setAddress("/RequestLimitingHandlerTest/CamelContext/RouterPort");
+            cxfEndpoint.setAddress("/AccessLogHandlerTest/CamelContext/RouterPort");
             cxfEndpoint.setServiceClass(org.apache.camel.non_wrapper.Person.class);
             cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
             return cxfEndpoint;

@@ -19,9 +19,10 @@ package org.apache.camel.component.cxf.soap.springboot.undertowhandler;
 
 
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
@@ -45,12 +46,10 @@ import org.springframework.test.annotation.DirtiesContext;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.undertow.server.HandlerWrapper;
 import io.undertow.server.HttpHandler;
 import io.undertow.server.handlers.DisallowedMethodsHandler;
-import io.undertow.server.handlers.RequestLimitingHandler;
 import io.undertow.servlet.api.DeploymentInfo;
 import io.undertow.util.HttpString;
 
@@ -64,64 +63,43 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 @SpringBootTest(
     classes = {
         CamelAutoConfiguration.class,
-        RequestLimitingHandlerTest.class,
-        RequestLimitingHandlerTest.TestConfiguration.class,
+        DisallowedMethodsHandlerTest.class,
+        DisallowedMethodsHandlerTest.TestConfiguration.class,
         CxfAutoConfiguration.class
         
     }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
-public class RequestLimitingHandlerTest {
+public class DisallowedMethodsHandlerTest {
     
     
     static int port = CXFTestSupport.getPort1();
     
     @Test
-    public void testClient() throws Exception {
-
+    public void testPostandGet() throws Exception {
+        //POST is allowed but GET isn't
         JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
         factory.setAddress("http://localhost:" + port + "/services/"
                            + getClass().getSimpleName() + "/CamelContext/RouterPort");
         factory.setServiceClass(Person.class);
         Person person = factory.create(Person.class);
-        CountDownLatch latch = new CountDownLatch(50); 
+        GetPerson payload = new GetPerson();
+        payload.setPersonId("1234");
 
-        ExecutorService executor = Executors.newFixedThreadPool(200); 
+        GetPersonResponse reply = person.getPerson(payload);
+        assertEquals("1234", reply.getPersonId(), "Get the wrong person id.");
+        
+        HttpClient client = HttpClient.newHttpClient();
+        HttpRequest request = HttpRequest
+            .newBuilder().uri(URI.create("http://localhost:" + port + "/services/"
+                                         + getClass().getSimpleName() + "/CamelContext/RouterPort?wsdl"))
+            .GET().build();
 
-        for (int i = 0; i < 50; i++) {
-            executor.execute(new SendRequest(person, latch)); 
-        }
-        latch.await();
+        HttpResponse<Void> response = client.send(request, HttpResponse.BodyHandlers.discarding());
+        assertEquals(405, response.statusCode());// as GET http method isn't allowed
     }
     
-    class SendRequest implements Runnable {
-        Person person;
-        CountDownLatch latch;
-        SendRequest(Person person, CountDownLatch latch) {
-            this.person = person;
-            this.latch = latch;
-        }
-        @Override
-        public void run() {
-            try {
-                GetPerson payload = new GetPerson();
-                payload.setPersonId("1234");
-
-                GetPersonResponse reply = person.getPerson(payload);
-                assertEquals("1234", reply.getPersonId(), "Get the wrong person id.");
-
-            } catch (Exception ex) {
-                //some requests are expected to fail and receive 503 error
-                //cause Server side limit the concurrent request
-                assertTrue(ex.getCause().getMessage().contains("503: Service Unavailable"));
-            } finally {
-                latch.countDown();
-            }
-
-        }
-
-    }
-
-            
+    
+                  
 
     // *************************************
     // Config
@@ -143,7 +121,7 @@ public class RequestLimitingHandlerTest {
                         @Override
                         public HttpHandler wrap(HttpHandler handler) {
                             
-                            return new DisallowedMethodsHandler(new RequestLimitingHandler(3, 1, handler), 
+                            return new DisallowedMethodsHandler(handler, 
                                                                 new HttpString("GET"));
                         }
                     });
@@ -156,7 +134,7 @@ public class RequestLimitingHandlerTest {
         @Bean
         public CxfEndpoint routerEndpoint() {
             CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-            cxfEndpoint.setAddress("/RequestLimitingHandlerTest/CamelContext/RouterPort");
+            cxfEndpoint.setAddress("/DisallowedMethodsHandlerTest/CamelContext/RouterPort");
             cxfEndpoint.setServiceClass(org.apache.camel.non_wrapper.Person.class);
             cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
             return cxfEndpoint;
