@@ -26,6 +26,7 @@ import javax.xml.ws.handler.Handler;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.jaxws.CxfProducer;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
@@ -59,7 +60,7 @@ public class CxfEndpointBeanTest {
     
     private QName serviceName = QName.valueOf("{http://camel.apache.org/wsdl-first}PersonService");
     private QName endpointName = QName.valueOf("{http://camel.apache.org/wsdl-first}soap");
-    
+    static int port = CXFTestSupport.getPort1();
     @Autowired
     ApplicationContext ctx;
     
@@ -68,13 +69,13 @@ public class CxfEndpointBeanTest {
         CamelContext context = ctx.getBean("camelContext", CamelContext.class);
         // try to create a new CxfEndpoint which could override the old bean's setting
         CxfEndpoint myLocalCxfEndpoint = (CxfEndpoint)context
-            .getEndpoint("cxf:bean:routerEndpoint?address=http://localhost:8080/services"
+            .getEndpoint("cxf:bean:routerEndpoint?address=http://localhost:" + port + "/services"
                          + "/CxfEndpointBeanTest/myCamelContext/");
-        assertEquals("http://localhost:8080/services" + "/CxfEndpointBeanTest/myCamelContext/",
+        assertEquals("http://localhost:" + port + "/services" + "/CxfEndpointBeanTest/myCamelContext/",
                      myLocalCxfEndpoint.getAddress(), "Got the wrong endpoint address");
 
         CxfEndpoint routerEndpoint = ctx.getBean("routerEndpoint", CxfEndpoint.class);
-        assertEquals("http://localhost:8080/services" + "/CxfEndpointBeanTest/myCamelContext/",
+        assertEquals("http://localhost:" + port + "/services" + "/CxfEndpointBeanTest/myCamelContext/",
                      routerEndpoint.getAddress(), "Got the wrong endpoint address");
     }
 
@@ -112,7 +113,7 @@ public class CxfEndpointBeanTest {
             CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
             cxfEndpoint.setServiceClass(org.apache.camel.component.cxf.HelloService.class);
             
-            cxfEndpoint.setAddress("http://localhost:8080/services/CxfEndpointBeanTest/helloworld");
+            cxfEndpoint.setAddress("http://localhost:" + port + "/services/CxfEndpointBeanTest/helloworld");
             
             Map<String, Object> properties = new HashMap<String, Object>();
             AuthorizationPolicy policy = new AuthorizationPolicy();

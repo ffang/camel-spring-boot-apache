@@ -139,7 +139,7 @@ public class CxfDispatchPayloadTest extends CxfDispatchTestSupport {
         CxfEndpoint serviceEndpoint() {
             CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
             
-            cxfEndpoint.setAddress("http://localhost:8080/services" 
+            cxfEndpoint.setAddress("http://localhost:" + port + "/services" 
                 + "/CxfDispatchPayloadTest/SoapContext/GreeterPort");
             cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
             cxfEndpoint.setSynchronous(true);

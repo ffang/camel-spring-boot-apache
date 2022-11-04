@@ -51,8 +51,7 @@ import org.apache.hello_world_soap_http.GreeterImpl;
 public abstract class CxfDispatchTestSupport {
 
     
-    
-   
+      
     protected static final String DISPATCH_NS = "http://camel.apache.org/cxf/jaxws/dispatch";
     protected static final String INVOKE_NAME = "Invoke";
     protected static final String INVOKE_ONEWAY_NAME = "InvokeOneWay";
@@ -115,7 +114,7 @@ public abstract class CxfDispatchTestSupport {
     class ServletConfiguration {
         @Bean
         public ServletWebServerFactory servletWebServerFactory() {
-            return new UndertowServletWebServerFactory();
+            return new UndertowServletWebServerFactory(port);
         }
 
     }
