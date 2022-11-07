@@ -14,19 +14,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.cxf.soap.springboot;
+package org.apache.camel.component.cxf.soap.springboot.dispatch;
 
 import java.io.ByteArrayInputStream;
-import java.io.InputStream;
 
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CxfPayload;
 import org.apache.camel.component.cxf.common.DataFormat;
 import org.apache.camel.component.cxf.common.message.CxfConstants;
+import org.apache.camel.component.cxf.converter.CxfPayloadConverter;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
@@ -44,57 +47,56 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
+import org.apache.cxf.binding.soap.SoapHeader;
 import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 
 @DirtiesContext
 @CamelSpringBootTest
 @SpringBootTest(classes = {
                            CamelAutoConfiguration.class, 
-                           CxfDispatchMessageTest.class,
-                           CxfDispatchMessageTest.TestConfiguration.class,
+                           CxfDispatchPayloadTest.class,
+                           CxfDispatchPayloadTest.TestConfiguration.class,
                            CxfDispatchTestSupport.ServletConfiguration.class,
                            CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CxfDispatchMessageTest extends CxfDispatchTestSupport {
+public class CxfDispatchPayloadTest extends CxfDispatchTestSupport {
 
     @Autowired
     ProducerTemplate template;
     
     
-    
-    
-    
     @Test
-    public void testDipatchMessage() throws Exception {
+    public void testDispatchPayload() throws Exception {
         final String name = "Tila";
-        Exchange exchange = sendJaxWsDispatchMessage(name, false);
+        Exchange exchange = sendJaxWsDispatchPayload(name, false);
         assertEquals(false, exchange.isFailed(), "The request should be handled sucessfully");
 
         org.apache.camel.Message response = exchange.getMessage();
-        assertNotNull(response, "The response message must not be null");
+        assertNotNull(response, "The response must not be null");
 
-        String value = decodeResponseFromMessage(response.getBody(InputStream.class), exchange);
-        assertTrue(value.endsWith(name), "The response body must match the request");
+        String value = decodeResponseFromPayload((CxfPayload<?>) response.getBody(CxfPayload.class), exchange);
+        assertTrue(value.endsWith(name), "The response must match the request");
     }
 
     @Test
-    public void testDipatchMessageOneway() throws Exception {
+    public void testDispatchPayloadOneway() throws Exception {
         final String name = "Tila";
-        Exchange exchange = sendJaxWsDispatchMessage(name, true);
+        Exchange exchange = sendJaxWsDispatchPayload(name, true);
         assertEquals(false, exchange.isFailed(), "The request should be handled sucessfully");
 
         org.apache.camel.Message response = exchange.getOut();
-        assertNotNull(response, "The response message must not be null");
+        assertNotNull(response, "The response must not be null");
 
-        assertNull(response.getBody(), "The response body must be null");
+        assertNull(response.getBody(), "The response must be null");
     }
 
-    protected Exchange sendJaxWsDispatchMessage(final String name, final boolean oneway) {
+    private Exchange sendJaxWsDispatchPayload(final String name, final boolean oneway) {
         Exchange exchange = template.send("direct:producer", new Processor() {
             public void process(final Exchange exchange) {
-                InputStream request
-                        = encodeRequestInMessage(oneway ? MESSAGE_ONEWAY_TEMPLATE : MESSAGE_TEMPLATE, name, exchange);
-                exchange.getIn().setBody(request, InputStream.class);
+                CxfPayload<SoapHeader> request = encodeRequestInPayload(oneway ? PAYLOAD_ONEWAY_TEMPLATE : PAYLOAD_TEMPLATE,
+                        name, exchange);
+                exchange.getIn().setBody(request, CxfPayload.class);
+                exchange.getIn().setHeader(CxfConstants.OPERATION_NAMESPACE, DISPATCH_NS);
                 // set the operation for oneway; otherwise use the default operation                
                 if (oneway) {
                     exchange.getIn().setHeader(CxfConstants.OPERATION_NAME, INVOKE_ONEWAY_NAME);
@@ -104,24 +106,24 @@ public class CxfDispatchMessageTest extends CxfDispatchTestSupport {
         return exchange;
     }
 
-    private static InputStream encodeRequestInMessage(String form, String name, Exchange exchange) {
+    private static <T> CxfPayload<T> encodeRequestInPayload(String form, String name, Exchange exchange) {
         String payloadstr = String.format(form, name);
-        InputStream message = null;
+        CxfPayload<T> payload = null;
         try {
-            message = new ByteArrayInputStream(payloadstr.getBytes("utf-8"));
+            Document doc = getDocumentBuilderFactory().newDocumentBuilder()
+                    .parse(new ByteArrayInputStream(payloadstr.getBytes("utf-8")));
+            payload = CxfPayloadConverter.documentToCxfPayload(doc, exchange);
         } catch (Exception e) {
             // ignore and let it fail
         }
-        return message;
+        return payload;
     }
 
-    private String decodeResponseFromMessage(InputStream message, Exchange exchange) {
+    private <T> String decodeResponseFromPayload(CxfPayload<T> payload, Exchange exchange) {
         String value = null;
-        try {
-            Document doc = getDocumentBuilderFactory().newDocumentBuilder().parse(message);
-            value = getResponseType(doc.getDocumentElement());
-        } catch (Exception e) {
-            // ignore and let it fail
+        NodeList nodes = CxfPayloadConverter.cxfPayloadToNodeList(payload, exchange);
+        if (nodes != null && nodes.getLength() == 1 && nodes.item(0) instanceof Element) {
+            value = getResponseType((Element) nodes.item(0));
         }
         return value;
     }
@@ -132,25 +134,25 @@ public class CxfDispatchMessageTest extends CxfDispatchTestSupport {
 
     @Configuration
     public class TestConfiguration {
-        
+
         @Bean
         CxfEndpoint serviceEndpoint() {
             CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
             
             cxfEndpoint.setAddress("http://localhost:" + port + "/services" 
-                + "/CxfDispatchMessageTest/SoapContext/GreeterPort");
-            cxfEndpoint.setDataFormat(DataFormat.RAW);
+                + "/CxfDispatchPayloadTest/SoapContext/GreeterPort");
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
             cxfEndpoint.setSynchronous(true);
             return cxfEndpoint;
         }
-
+        
         @Bean
         public RouteBuilder routeBuilder() {
             return new RouteBuilder() {
                 @Override
                 public void configure() {
                     from("direct:producer")
-                            .to("cxf:bean:serviceEndpoint");
+                        .to("cxf:bean:serviceEndpoint");
                 }
             };
         }
