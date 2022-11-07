@@ -1,4 +1,4 @@
-package org.apache.camel.component.cxf.soap.springboot;
+package org.apache.camel.component.cxf.soap.springboot.ssl;
 
 import java.io.InputStream;
 import java.net.InetAddress;

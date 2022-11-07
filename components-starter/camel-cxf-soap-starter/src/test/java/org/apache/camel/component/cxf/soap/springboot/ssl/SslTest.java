@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.cxf.soap.springboot;
+package org.apache.camel.component.cxf.soap.springboot.ssl;
 
 
 
@@ -25,11 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-import org.apache.camel.CamelContext;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.ProducerTemplate;
-import org.apache.camel.SSLContextParametersAware;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.cxf.GreeterImpl;
 import org.apache.camel.component.cxf.common.CXFTestSupport;
@@ -38,7 +36,6 @@ import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.soap.springboot.CxfTimeoutTest.OrigCxfConfigurer;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
-import org.apache.camel.spring.boot.CamelContextConfiguration;
 import org.apache.camel.support.jsse.KeyStoreParameters;
 import org.apache.camel.support.jsse.SSLContextParameters;
 import org.apache.camel.support.jsse.TrustManagersParameters;
@@ -69,12 +66,12 @@ import org.apache.cxf.transport.https.httpclient.DefaultHostnameVerifier;
 @SpringBootTest(
     classes = {
         CamelAutoConfiguration.class,
-        SslGlobalTest.class,
-        SslGlobalTest.TestConfiguration.class,
+        SslTest.class,
+        SslTest.TestConfiguration.class,
         CxfAutoConfiguration.class
     }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
-public class SslGlobalTest {
+public class SslTest {
     protected static final String GREET_ME_OPERATION = "greetMe";
     protected static final String TEST_MESSAGE = "Hello World!";
     protected static final String JAXWS_SERVER_ADDRESS
@@ -94,6 +91,14 @@ public class SslGlobalTest {
             }
         }
         assertFalse(reply.isFailed(), "We expect no exception here");
+    }
+
+    @Test
+    public void testInvokingNoTrustRoute() throws Exception {
+        Exchange reply = sendJaxWsMessage("direct:noTrust");
+        assertTrue(reply.isFailed(), "We expect the exception here");
+        Throwable e = reply.getException().getCause();
+        assertEquals("javax.net.ssl.SSLHandshakeException", e.getClass().getCanonicalName());
     }
 
     @Test
@@ -118,6 +123,7 @@ public class SslGlobalTest {
         });
         return exchange;
     }
+
    
     
     
@@ -137,6 +143,7 @@ public class SslGlobalTest {
                     from("cxf:bean:routerEndpoint").to("bean:greeter?method=greetMe");
                     from("direct:trust").to("cxf:bean:serviceEndpoint");
                     from("direct:wrongTrust").to("cxf:bean:serviceEndpointWrong");
+                    from("direct:noTrust").to("cxf:bean:serviceEndpointNoTrust");
                 }
             };
         }
@@ -146,6 +153,9 @@ public class SslGlobalTest {
             return new GreeterImpl();
         }
         
+        /*
+         * This is the way how to configure TLS/SSL with Bean 
+         */
         @Bean
         public ServletWebServerFactory servletWebServerFactory() throws UnknownHostException {
             UndertowServletWebServerFactory undertowWebServerFactory 
@@ -163,24 +173,6 @@ public class SslGlobalTest {
             return undertowWebServerFactory;
         }
         
-        @Bean
-        CamelContextConfiguration contextConfiguration() {
-            return new CamelContextConfiguration() {
-                @Override
-                public void beforeApplicationStart(CamelContext context) {
-                    SSLContextParameters parameters = context.getRegistry().lookupByNameAndType("mySslContext", SSLContextParameters.class);
-                    ((SSLContextParametersAware) context.getComponent("cxf")).setUseGlobalSslContextParameters(true);
-                    context.setSSLContextParameters(parameters);
-                }
-
-                @Override
-                public void afterApplicationStart(CamelContext camelContext) {
-                    
-
-                }
-            };
-        }
-
         @Bean
         DefaultHostnameVerifier defaultHostnameVerifier() {
             return new DefaultHostnameVerifier();
@@ -223,13 +215,14 @@ public class SslGlobalTest {
         }
         
         @Bean
-        CxfEndpoint serviceEndpoint(DefaultHostnameVerifier defaultHostnameVerifier) {
+        CxfEndpoint serviceEndpoint(SSLContextParameters mySslContext, DefaultHostnameVerifier defaultHostnameVerifier) {
             
             CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
             cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
             cxfEndpoint.setAddress("https://localhost:" + port 
                                    + "/services" + JAXWS_SERVER_ADDRESS);
             cxfEndpoint.setHostnameVerifier(defaultHostnameVerifier);
+            cxfEndpoint.setSslContextParameters(mySslContext);
             return cxfEndpoint;
         }
         
@@ -242,6 +235,16 @@ public class SslGlobalTest {
                                    + "/services" + JAXWS_SERVER_ADDRESS);
             cxfEndpoint.setHostnameVerifier(defaultHostnameVerifier);
             cxfEndpoint.setSslContextParameters(wrongSslContext);
+            return cxfEndpoint;
+        }
+        
+        @Bean
+        CxfEndpoint serviceEndpointNoTrust(SSLContextParameters wrongSslContext, DefaultHostnameVerifier defaultHostnameVerifier) {
+            
+            CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
+            cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
+            cxfEndpoint.setAddress("https://localhost:" + port 
+                                   + "/services" + JAXWS_SERVER_ADDRESS);
             return cxfEndpoint;
         }
     }
