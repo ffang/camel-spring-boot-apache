@@ -68,7 +68,7 @@ public abstract class AbstractCXFGreeterRouterTest {
     protected final QName routerPortName = new QName("http://apache.org/hello_world_soap_http", "RouterPort");
     protected final QName endpointName = new QName("http://apache.org/hello_world_soap_http", "SoapPort");
 
-    static int port = CXFTestSupport.getPort1();
+    public static int port = CXFTestSupport.getPort1();
     
     @Autowired
     ProducerTemplate template;

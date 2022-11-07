@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.cxf.soap.springboot;
+package org.apache.camel.component.cxf.soap.springboot.wsdl;
 
 import javax.xml.ws.Endpoint;
 
@@ -22,6 +22,8 @@ import javax.xml.ws.Endpoint;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.cxf.common.DataFormat;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
+import org.apache.camel.component.cxf.soap.springboot.AbstractCXFGreeterRouterTest;
+import org.apache.camel.component.cxf.soap.springboot.AbstractCXFGreeterRouterTest.TestConfiguration;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 
