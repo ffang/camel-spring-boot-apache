@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.cxf.soap.springboot;
+package org.apache.camel.component.cxf.soap.springboot.greeterroute;
 
 import javax.xml.ws.Endpoint;
 
@@ -40,14 +40,14 @@ import org.apache.hello_world_soap_http.GreeterImpl;
 @CamelSpringBootTest
 @SpringBootTest(classes = {
                            CamelAutoConfiguration.class, 
-                           CxfGreeterCXFMessageWithoutSEIRouterTest.class,
-                           CxfGreeterCXFMessageWithoutSEIRouterTest.TestConfiguration.class,
+                           CxfGreeterCXFMessageRouterTest.class,
+                           CxfGreeterCXFMessageRouterTest.TestConfiguration.class,
                            CxfAutoConfiguration.class,
                            AbstractCXFGreeterRouterTest.TestConfiguration.class,
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CxfGreeterCXFMessageWithoutSEIRouterTest extends CxfGreeterCXFMessageRouterTest {
+public class CxfGreeterCXFMessageRouterTest extends AbstractCXFGreeterRouterTest {
 
-    private static String backServiceAddress = "/CxfGreeterCXFMessageWithoutSEIRouterTest/SoapContext/SoapPort";
+    private static String backServiceAddress = "/CxfGreeterCXFMessageRouterTest/SoapContext/SoapPort";
     protected static Endpoint endpoint;
     
     
@@ -67,7 +67,6 @@ public class CxfGreeterCXFMessageWithoutSEIRouterTest extends CxfGreeterCXFMessa
 
     
     
-
     // *************************************
     // Config
     // *************************************
@@ -78,10 +77,8 @@ public class CxfGreeterCXFMessageWithoutSEIRouterTest extends CxfGreeterCXFMessa
         @Bean
         CxfEndpoint routerEndpoint() {
             CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-            cxfEndpoint.setServiceNameAsQName(serviceName);
-            cxfEndpoint.setEndpointNameAsQName(endpointName);
-            cxfEndpoint.setWsdlURL("testutils/hello_world.wsdl");
-            cxfEndpoint.setAddress("/CxfGreeterCXFMessageWithoutSEIRouterTest/CamelContext/RouterPort");
+            cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.GreeterImpl.class);
+            cxfEndpoint.setAddress("/CxfGreeterCXFMessageRouterTest/CamelContext/RouterPort");
             cxfEndpoint.setLoggingFeatureEnabled(true);
             cxfEndpoint.setDataFormat(DataFormat.CXF_MESSAGE);
             cxfEndpoint.setPublishedEndpointUrl("http://www.simple.com/services/test");
@@ -100,17 +97,15 @@ public class CxfGreeterCXFMessageWithoutSEIRouterTest extends CxfGreeterCXFMessa
             return cxfEndpoint;
         }
 
+
         @Bean
         public RouteBuilder routeBuilder() {
             return new RouteBuilder() {
                 @Override
                 public void configure() {
-                    errorHandler(noErrorHandler());
-
                     from("cxf:bean:routerEndpoint")
                             .to("cxf:bean:serviceEndpoint");
                 }
-                
             };
         }
     }

@@ -14,12 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.cxf.soap.springboot;
+package org.apache.camel.component.cxf.soap.springboot.greeterroute;
 
 import javax.xml.ws.Endpoint;
 
 
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.TestCxfFeature;
 import org.apache.camel.component.cxf.common.DataFormat;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
@@ -40,14 +41,14 @@ import org.apache.hello_world_soap_http.GreeterImpl;
 @CamelSpringBootTest
 @SpringBootTest(classes = {
                            CamelAutoConfiguration.class, 
-                           CxfGreeterCXFMessageRouterTest.class,
-                           CxfGreeterCXFMessageRouterTest.TestConfiguration.class,
-                           CxfAutoConfiguration.class,
+                           CxfGreeterPayLoadWithFeatureRouterTest.class,
+                           CxfGreeterPayLoadWithFeatureRouterTest.TestConfiguration.class,
                            AbstractCXFGreeterRouterTest.TestConfiguration.class,
+                           CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CxfGreeterCXFMessageRouterTest extends AbstractCXFGreeterRouterTest {
+public class CxfGreeterPayLoadWithFeatureRouterTest extends AbstractCXFGreeterRouterTest {
 
-    private static String backServiceAddress = "/CxfGreeterCXFMessageRouterTest/SoapContext/SoapPort";
+    private static String backServiceAddress = "/CxfGreeterPayLoadWithFeatureRouterTest/SoapContext/SoapPort";
     protected static Endpoint endpoint;
     
     
@@ -78,9 +79,8 @@ public class CxfGreeterCXFMessageRouterTest extends AbstractCXFGreeterRouterTest
         CxfEndpoint routerEndpoint() {
             CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
             cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.GreeterImpl.class);
-            cxfEndpoint.setAddress("/CxfGreeterCXFMessageRouterTest/CamelContext/RouterPort");
-            cxfEndpoint.setLoggingFeatureEnabled(true);
-            cxfEndpoint.setDataFormat(DataFormat.CXF_MESSAGE);
+            cxfEndpoint.setAddress("/CxfGreeterPayLoadWithFeatureRouterTest/CamelContext/RouterPort");
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
             cxfEndpoint.setPublishedEndpointUrl("http://www.simple.com/services/test");
             return cxfEndpoint;
         }
@@ -93,7 +93,8 @@ public class CxfGreeterCXFMessageRouterTest extends AbstractCXFGreeterRouterTest
             cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
             cxfEndpoint.setAddress("http://localhost:" + port + "/services" + backServiceAddress);
             cxfEndpoint.setWsdlURL("testutils/hello_world.wsdl");
-            cxfEndpoint.setDataFormat(DataFormat.CXF_MESSAGE);
+            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            cxfEndpoint.getFeatures().add(new TestCxfFeature());
             return cxfEndpoint;
         }
 
@@ -103,6 +104,7 @@ public class CxfGreeterCXFMessageRouterTest extends AbstractCXFGreeterRouterTest
             return new RouteBuilder() {
                 @Override
                 public void configure() {
+                    errorHandler(noErrorHandler());
                     from("cxf:bean:routerEndpoint")
                             .to("cxf:bean:serviceEndpoint");
                 }

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.camel.component.cxf.soap.springboot.wsdl;
+package org.apache.camel.component.cxf.soap.springboot.greeterroute;
 
 import javax.xml.ws.Endpoint;
 
@@ -22,7 +22,6 @@ import javax.xml.ws.Endpoint;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.cxf.common.DataFormat;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
-import org.apache.camel.component.cxf.soap.springboot.AbstractCXFGreeterRouterTest;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 
@@ -41,14 +40,14 @@ import org.apache.hello_world_soap_http.GreeterImpl;
 @CamelSpringBootTest
 @SpringBootTest(classes = {
                            CamelAutoConfiguration.class, 
-                           CxfGreeterWSDLOnlyRouterTest.class,
-                           CxfGreeterWSDLOnlyRouterTest.TestConfiguration.class,
+                           CxfGreeterCXFMessageWithoutSEIRouterTest.class,
+                           CxfGreeterCXFMessageWithoutSEIRouterTest.TestConfiguration.class,
+                           CxfAutoConfiguration.class,
                            AbstractCXFGreeterRouterTest.TestConfiguration.class,
-                           CxfAutoConfiguration.class
 }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class CxfGreeterWSDLOnlyRouterTest extends AbstractCXFGreeterRouterTest {
+public class CxfGreeterCXFMessageWithoutSEIRouterTest extends CxfGreeterCXFMessageRouterTest {
 
-    private static String backServiceAddress = "/CxfGreeterWSDLOnlyRouterTest/SoapContext/SoapPort";
+    private static String backServiceAddress = "/CxfGreeterCXFMessageWithoutSEIRouterTest/SoapContext/SoapPort";
     protected static Endpoint endpoint;
     
     
@@ -79,11 +78,12 @@ public class CxfGreeterWSDLOnlyRouterTest extends AbstractCXFGreeterRouterTest {
         @Bean
         CxfEndpoint routerEndpoint() {
             CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
-            cxfEndpoint.setAddress("/CxfGreeterWSDLOnlyRouterTest/CamelContext/RouterPort");
-            cxfEndpoint.setWsdlURL("testutils/hello_world.wsdl");
-            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
             cxfEndpoint.setServiceNameAsQName(serviceName);
             cxfEndpoint.setEndpointNameAsQName(endpointName);
+            cxfEndpoint.setWsdlURL("testutils/hello_world.wsdl");
+            cxfEndpoint.setAddress("/CxfGreeterCXFMessageWithoutSEIRouterTest/CamelContext/RouterPort");
+            cxfEndpoint.setLoggingFeatureEnabled(true);
+            cxfEndpoint.setDataFormat(DataFormat.CXF_MESSAGE);
             cxfEndpoint.setPublishedEndpointUrl("http://www.simple.com/services/test");
             return cxfEndpoint;
         }
@@ -93,9 +93,10 @@ public class CxfGreeterWSDLOnlyRouterTest extends AbstractCXFGreeterRouterTest {
             CxfSpringEndpoint cxfEndpoint = new CxfSpringEndpoint();
             cxfEndpoint.setServiceNameAsQName(serviceName);
             cxfEndpoint.setEndpointNameAsQName(endpointName);
+            cxfEndpoint.setServiceClass(org.apache.hello_world_soap_http.Greeter.class);
             cxfEndpoint.setAddress("http://localhost:" + port + "/services" + backServiceAddress);
             cxfEndpoint.setWsdlURL("testutils/hello_world.wsdl");
-            cxfEndpoint.setDataFormat(DataFormat.PAYLOAD);
+            cxfEndpoint.setDataFormat(DataFormat.CXF_MESSAGE);
             return cxfEndpoint;
         }
 
@@ -104,9 +105,12 @@ public class CxfGreeterWSDLOnlyRouterTest extends AbstractCXFGreeterRouterTest {
             return new RouteBuilder() {
                 @Override
                 public void configure() {
+                    errorHandler(noErrorHandler());
+
                     from("cxf:bean:routerEndpoint")
                             .to("cxf:bean:serviceEndpoint");
                 }
+                
             };
         }
     }
