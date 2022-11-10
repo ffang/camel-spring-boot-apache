@@ -104,7 +104,9 @@ public class CxfGreeterPayLoadRouterTest extends AbstractCXFGreeterRouterTest {
                 @Override
                 public void configure() {
                     from("cxf:bean:routerEndpoint")
-                            .to("cxf:bean:serviceEndpoint");
+                            .to("cxf://http://localhost:" + port + "/services" + backServiceAddress
+                                + "?wsdlURL=testutils/hello_world.wsdl" 
+                                + "&dataFormat=PAYLOAD&serviceClass=org.apache.hello_world_soap_http.Greeter");
                 }
             };
         }
