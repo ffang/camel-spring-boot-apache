@@ -40,16 +40,17 @@
       <version>${camel-version}</version>
     </dependency>
     <dependency>
-      <groupId>org.apache.cxf</groupId>
-      <artifactId>cxf-rt-transports-http-undertow</artifactId>
-      <version>${cxf-version}</version>
-      <scope>test</scope>
-    </dependency>
-    <dependency>
       <groupId>org.apache.camel</groupId>
       <artifactId>camel-cxf-common</artifactId>
       <version>${camel-version}</version>
       <type>test-jar</type>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel</groupId>
+      <artifactId>camel-cxf-spring-rest</artifactId>
+      <version>${camel-version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
     </dependency>
     <dependency>
       <groupId>org.apache.camel</groupId>

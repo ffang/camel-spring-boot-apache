@@ -18,6 +18,7 @@ package org.apache.camel.component.cxf.rest.springboot;
 
 
 import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.jaxrs.testbean.ServiceUtil;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 
@@ -55,6 +56,7 @@ import org.apache.http.util.EntityUtils;
 )
 public class CxfRsConsumerWithBeanTest {
 
+    private int port = CXFTestSupport.getPort1();
     private static final String CXT = "/CxfRsConsumerWithBeanTest";
     private static final String CXF_RS_ENDPOINT_URI
             = "cxfrs://" + CXT
@@ -63,20 +65,12 @@ public class CxfRsConsumerWithBeanTest {
             = "cxfrs://" + CXT
               + "/rest2?resourceClasses=org.apache.camel.component.cxf.jaxrs.testbean.CustomerServiceResource";
 
-    @Bean("service")
-    protected ServiceUtil bindToRegistry() {
-        return new ServiceUtil();
-    }
     
-    @Bean
-    public ServletWebServerFactory servletWebServerFactory() {
-        return new UndertowServletWebServerFactory();
-    }
     
     @Test
     public void testPutConsumer() throws Exception {
-        sendPutRequest("http://localhost:8080/services" + CXT + "/rest/customerservice/c20");
-        sendPutRequest("http://localhost:8080/services" + CXT + "/rest2/customerservice/c20");
+        sendPutRequest("http://localhost:" + port + "/services" + CXT + "/rest/customerservice/c20");
+        sendPutRequest("http://localhost:" + port + "/services" + CXT + "/rest2/customerservice/c20");
     }
 
     private void sendPutRequest(String uri) throws Exception {
@@ -102,6 +96,16 @@ public class CxfRsConsumerWithBeanTest {
     @Configuration
     public class TestConfiguration {
 
+        @Bean("service")
+        public ServiceUtil bindToRegistry() {
+            return new ServiceUtil();
+        }
+        
+        @Bean
+        public ServletWebServerFactory servletWebServerFactory() {
+            return new UndertowServletWebServerFactory(port);
+        }
+        
         @Bean
         public RouteBuilder routeBuilder() {
             return new RouteBuilder() {
