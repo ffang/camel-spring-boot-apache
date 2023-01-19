@@ -40,6 +40,7 @@ import org.apache.camel.support.jsse.KeyStoreParameters;
 import org.apache.camel.support.jsse.SSLContextParameters;
 import org.apache.camel.support.jsse.TrustManagersParameters;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -85,6 +86,8 @@ public class CxfRsGlobalSslProducerTest {
     @Autowired
     protected ProducerTemplate template;
     
+    private Server server;
+    
     @BeforeEach
     public void setUp() throws Exception {
         JAXRSServerFactoryBean sfb = new JAXRSServerFactoryBean();
@@ -93,8 +96,16 @@ public class CxfRsGlobalSslProducerTest {
         sfb.setServiceBeans(serviceBeans);
         sfb.setAddress("/CxfRsProducerTest/");
         sfb.setStaticSubresourceResolution(true);
-        Server server = sfb.create();
+        server = sfb.create();
         server.start();
+    }
+    
+    @AfterEach
+    public void shutdown() throws Exception {
+        if (server != null) {
+            server.stop();
+            server.destroy();
+        }
     }
 
     
