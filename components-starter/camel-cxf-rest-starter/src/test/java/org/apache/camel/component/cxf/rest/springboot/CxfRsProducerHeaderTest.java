@@ -36,6 +36,7 @@ import org.apache.camel.component.cxf.util.CxfUtils;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 import org.apache.camel.spring.xml.CamelEndpointFactoryBean;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -79,6 +80,8 @@ public class CxfRsProducerHeaderTest {
     @Autowired
     protected CamelContext camelContext;
     
+    private Server server;
+    
     @BeforeEach
     public void setUp() throws Exception {
         JAXRSServerFactoryBean sfb = new JAXRSServerFactoryBean();
@@ -87,11 +90,17 @@ public class CxfRsProducerHeaderTest {
         sfb.setServiceBeans(serviceBeans);
         sfb.setAddress("/CxfRsProducerHeaderTest/");
         sfb.setStaticSubresourceResolution(true);
-        Server server = sfb.create();
+        server = sfb.create();
         server.start();
     }
 
-    
+    @AfterEach
+    public void shutdown() throws Exception {
+        if (server != null) {
+            server.stop();
+            server.destroy();
+        }
+    }
 
     @Test
     public void testInvokeThatDoesNotInvolveHeaders() throws Exception {
