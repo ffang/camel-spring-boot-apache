@@ -93,7 +93,7 @@ public class CxfRsSslAsyncProducerTest {
         List<Object> serviceBeans = new ArrayList<Object>();
         serviceBeans.add(new org.apache.camel.component.cxf.jaxrs.testbean.CustomerService());
         sfb.setServiceBeans(serviceBeans);
-        sfb.setAddress("/CxfRsProducerTest/");
+        sfb.setAddress("/CxfRsSslAsyncProducerTest/");
         sfb.setStaticSubresourceResolution(true);
         server = sfb.create();
         server.start();
@@ -229,7 +229,7 @@ public class CxfRsSslAsyncProducerTest {
         AbstractJAXRSFactoryBean serviceEndpoint(SSLContextParameters mySslContext, DefaultHostnameVerifier defaultHostnameVerifier) {
             AbstractJAXRSFactoryBean afb = new SpringJAXRSClientFactoryBean();
             afb.setAddress("https://localhost:" + port 
-                                   + "/services/CxfRsProducerTest/");
+                                   + "/services/CxfRsSslAsyncProducerTest/");
             return afb;
         }
         
@@ -238,7 +238,7 @@ public class CxfRsSslAsyncProducerTest {
             
             CxfRsEndpoint cxfEndpoint = new CxfRsEndpoint();
             cxfEndpoint.setAddress("https://localhost:" + port 
-                                   + "/services/CxfRsProducerTest/");
+                                   + "/services/CxfRsSslAsyncProducerTest/");
             cxfEndpoint.setHostnameVerifier(defaultHostnameVerifier);
             cxfEndpoint.setSslContextParameters(wrongSslContext);
             cxfEndpoint.setSynchronous(true);
@@ -250,7 +250,7 @@ public class CxfRsSslAsyncProducerTest {
             
             CxfRsEndpoint cxfEndpoint = new CxfRsEndpoint();
             cxfEndpoint.setAddress("https://localhost:" + port 
-                                   + "/services/CxfRsProducerTest/");
+                                   + "/services/CxfRsSslAsyncProducerTest/");
             cxfEndpoint.setHostnameVerifier(defaultHostnameVerifier);
             cxfEndpoint.setSynchronous(true);
             return cxfEndpoint;

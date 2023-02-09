@@ -17,6 +17,7 @@
 package org.apache.camel.component.cxf.rest.springboot;
 
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -42,8 +43,8 @@ import org.apache.camel.component.cxf.spring.jaxrs.SpringJAXRSServerFactoryBean;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 import org.apache.camel.spring.xml.CamelEndpointFactoryBean;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -51,6 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -63,13 +65,18 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.apache.camel.util.CastUtils;
 import org.apache.cxf.Bus;
+import org.apache.cxf.BusFactory;
+import org.apache.cxf.bus.spring.SpringBusFactory;
 import org.apache.cxf.endpoint.Client;
 import org.apache.cxf.endpoint.Server;
 import org.apache.cxf.feature.Feature;
 import org.apache.cxf.interceptor.InterceptorProvider;
 import org.apache.cxf.jaxrs.AbstractJAXRSFactoryBean;
 import org.apache.cxf.jaxrs.JAXRSServerFactoryBean;
+import org.apache.cxf.jaxrs.model.AbstractResourceInfo;
 import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
+import org.apache.cxf.testutil.common.AbstractServerTestServerBase;
+import org.apache.cxf.testutil.common.ServerLauncher;
 
 
 
@@ -88,6 +95,9 @@ public class CxfRsProducerTest {
     static int port1 = CXFTestSupport.getPort1();
     static int port2 = CXFTestSupport.getPort2();
     
+    
+    private static List<ServerLauncher> launchers = new ArrayList<>();
+    
     public static class JettyProcessor implements Processor {
         @Override
         public void process(Exchange exchange) throws Exception {
@@ -97,37 +107,79 @@ public class CxfRsProducerTest {
         }
     }
     
-    private Server server;
-
+    
     @Autowired
     private ProducerTemplate template;
     
     @Autowired
     private CamelContext context;
     
-    
-    
-    @BeforeEach
-    public void setUp() throws Exception {
-        JAXRSServerFactoryBean sfb = new SpringJAXRSServerFactoryBean();
-        List<Object> serviceBeans = new ArrayList<Object>();
-        serviceBeans.add(new org.apache.camel.component.cxf.jaxrs.testbean.CustomerService());
-        sfb.setServiceBeans(serviceBeans);
-        sfb.setAddress("/CxfRsProducerTest/");
-        sfb.setStaticSubresourceResolution(true);
-        server = sfb.create();
-        server.start();
-    }
+    public static class ExternalServer extends AbstractServerTestServerBase {
+        @Override
+        protected Server createServer(Bus bus) throws Exception {
+            JAXRSServerFactoryBean sfb = new SpringJAXRSServerFactoryBean();
+            List<Object> serviceBeans = new ArrayList<Object>();
+            serviceBeans.add(new org.apache.camel.component.cxf.jaxrs.testbean.CustomerService());
+            sfb.setServiceBeans(serviceBeans);
+            sfb.setAddress("http://localhost:" +port1 + "/services/CxfRsProducerTest/");
+            sfb.setStaticSubresourceResolution(true);
+            return sfb.create();
+        }
 
-    @AfterEach
-    public void shutdown() throws Exception {
-        if (server != null) {
-            server.stop();
-            server.destroy();
+        public static void main(String[] args) throws Exception {
+            new ExternalServer().start();
         }
     }
     
-    //@Test
+    /**
+     * Starts the server inProcess or out of process depending on the param
+     */
+    public static boolean launchServer(Class<?> clz, boolean inProcess) {
+        boolean ok = false;
+        try {
+            ServerLauncher sl = new ServerLauncher(clz.getName(), inProcess);
+            ok = sl.launchServer();
+            assertTrue(ok, "server failed to launch");
+            launchers.add(0, sl);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            fail("failed to launch server " + clz);
+        }
+
+        return ok;
+    }
+    
+    @BeforeAll
+    public static void setUp() throws Exception {
+        AbstractResourceInfo.clearAllMaps();
+
+        assertTrue(launchServer(ExternalServer.class, true), "server did not launch correctly");
+    }
+
+    @AfterAll
+    public static void stopAllServers() throws Exception {
+        boolean passed = true;
+        for (ServerLauncher sl : launchers) {
+            try {
+                sl.signalStop();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        for (ServerLauncher sl : launchers) {
+            try {
+                passed = passed && sl.stopServer();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        launchers.clear();
+        System.gc();
+        assertTrue(passed, "server failed");
+    }
+    
+    
+    @Test
     public void testGetCustomerWithClientProxyAPI() {
         // START SNIPPET: ProxyExample
         Exchange exchange = template.send("direct://proxy", new Processor() {
@@ -157,7 +209,7 @@ public class CxfRsProducerTest {
         // END SNIPPET: ProxyExample     
     }
 
-    //@Test
+    @Test
     public void testGetCustomersWithClientProxyAPI() {
         Exchange exchange = template.send("direct://proxy", new Processor() {
             public void process(Exchange exchange) throws Exception {
@@ -360,7 +412,7 @@ public class CxfRsProducerTest {
         assertEquals(201, exchange.getMessage().getHeader(Exchange.HTTP_RESPONSE_CODE), "Get a wrong response code");
     }
 
-    //@Test
+    @Test
     public void testAddCustomerUniqueResponseCodeWithProxyAPI() {
         Exchange exchange = template.send("direct://proxy", new Processor() {
             public void process(Exchange exchange) throws Exception {
@@ -631,8 +683,9 @@ public class CxfRsProducerTest {
             return new JettyProcessor();
         }
         
-        /*@Bean
+        @Bean
         public AbstractJAXRSFactoryBean rsClientProxy() {
+            BusFactory.setThreadDefaultBus(new SpringBusFactory().createBus());
             SpringJAXRSClientFactoryBean afb = new SpringJAXRSClientFactoryBean();
             //afb.setBus(BusFactory.getDefaultBus());
             afb.setAddress("http://localhost:" + port1
@@ -642,7 +695,7 @@ public class CxfRsProducerTest {
             afb.setLoggingFeatureEnabled(true);
             
             return afb;
-        }*/
+        }
         
         @Bean
         public AbstractJAXRSFactoryBean rsClientHttp() {
@@ -671,7 +724,7 @@ public class CxfRsProducerTest {
             return new RouteBuilder() {
                 @Override
                 public void configure() {
-                    //from("direct://proxy").to("cxfrs:bean:rsClientProxy?synchronous=true");
+                    from("direct://proxy").to("cxfrs:bean:rsClientProxy?synchronous=true");
                     from("direct://http").to("cxfrs:bean:rsClientHttp?synchronous=true");
                     from("ref:fromEndpoint").process("myProcessor");
                 }
