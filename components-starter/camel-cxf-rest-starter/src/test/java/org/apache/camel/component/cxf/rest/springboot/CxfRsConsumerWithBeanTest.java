@@ -20,6 +20,8 @@ package org.apache.camel.component.cxf.rest.springboot;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.jaxrs.testbean.ServiceUtil;
+import org.apache.camel.component.cxf.spring.jaxrs.SpringJAXRSClientFactoryBean;
+import org.apache.camel.component.cxf.spring.jaxrs.SpringJAXRSServerFactoryBean;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 
 import org.junit.jupiter.api.Test;
@@ -35,6 +37,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
+import org.apache.cxf.jaxrs.AbstractJAXRSFactoryBean;
 import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPut;
@@ -107,13 +110,33 @@ public class CxfRsConsumerWithBeanTest {
         }
         
         @Bean
+        public AbstractJAXRSFactoryBean consumer1() {
+            SpringJAXRSServerFactoryBean afb = new SpringJAXRSServerFactoryBean();
+            
+            afb.setAddress("/CxfRsConsumerWithBeanTest/rest");
+            afb.setResourceClasses(org.apache.camel.component.cxf.jaxrs.testbean.CustomerServiceResource.class);
+            
+            return afb;
+        }
+        
+        @Bean
+        public AbstractJAXRSFactoryBean consumer2() {
+            SpringJAXRSServerFactoryBean afb = new SpringJAXRSServerFactoryBean();
+            
+            afb.setAddress("/CxfRsConsumerWithBeanTest/rest2");
+            afb.setResourceClasses(org.apache.camel.component.cxf.jaxrs.testbean.CustomerServiceResource.class);
+            
+            return afb;
+        }
+        
+        @Bean
         public RouteBuilder routeBuilder() {
             return new RouteBuilder() {
                 @Override
                 public void configure() {
 
-                    from(CXF_RS_ENDPOINT_URI).to("bean://service?method=invoke(${body[0]}, ${body[1]})");
-                    from(CXF_RS_ENDPOINT_URI_2).bean(ServiceUtil.class, "invoke(${body[0]}, ${body[1]})");
+                    from("cxfrs:bean:consumer1").to("bean://service?method=invoke(${body[0]}, ${body[1]})");
+                    from("cxfrs:bean:consumer2").bean(ServiceUtil.class, "invoke(${body[0]}, ${body[1]})");
                 }
             };
         }
