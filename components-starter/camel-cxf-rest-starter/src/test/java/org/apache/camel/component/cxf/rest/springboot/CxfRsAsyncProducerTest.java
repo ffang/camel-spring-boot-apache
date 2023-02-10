@@ -105,7 +105,7 @@ public class CxfRsAsyncProducerTest {
         List<Object> serviceBeans = new ArrayList<Object>();
         serviceBeans.add(new org.apache.camel.component.cxf.jaxrs.testbean.CustomerService());
         sfb.setServiceBeans(serviceBeans);
-        sfb.setAddress("/CxfRsAsyncProducerTest/");
+        sfb.setAddress("http://localhost:" + port1 + "/services/CxfRsAsyncProducerTest/");
         sfb.setStaticSubresourceResolution(true);
         server = sfb.create();
         server.start();
@@ -119,7 +119,7 @@ public class CxfRsAsyncProducerTest {
         }
     }
     
-    //@Test
+    @Test
     public void testGetCustomerWithClientProxyAPI() {
         // START SNIPPET: ProxyExample
         Exchange exchange = template.send("direct://proxy", new Processor() {
@@ -149,7 +149,7 @@ public class CxfRsAsyncProducerTest {
         // END SNIPPET: ProxyExample     
     }
 
-    //@Test
+    @Test
     public void testGetCustomersWithClientProxyAPI() {
         Exchange exchange = template.send("direct://proxy", newExchange -> {
             newExchange.setPattern(ExchangePattern.InOut);
@@ -589,7 +589,7 @@ public class CxfRsAsyncProducerTest {
             return new JettyProcessor();
         }
         
-        /*@Bean
+        @Bean
         public AbstractJAXRSFactoryBean rsClientProxy() {
             SpringJAXRSClientFactoryBean afb = new SpringJAXRSClientFactoryBean();
             //afb.setBus(BusFactory.getDefaultBus());
@@ -600,7 +600,7 @@ public class CxfRsAsyncProducerTest {
             afb.setLoggingFeatureEnabled(true);
             
             return afb;
-        }*/
+        }
         
         @Bean
         public AbstractJAXRSFactoryBean rsClientHttp() {
@@ -629,7 +629,7 @@ public class CxfRsAsyncProducerTest {
             return new RouteBuilder() {
                 @Override
                 public void configure() {
-                    //from("direct://proxy").to("cxfrs:bean:rsClientProxy");
+                    from("direct://proxy").to("cxfrs:bean:rsClientProxy");
                     from("direct://http").to("cxfrs:bean:rsClientHttp");
                     from("ref:fromEndpoint").process("myProcessor");
                 }

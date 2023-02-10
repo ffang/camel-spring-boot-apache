@@ -44,8 +44,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.web.embedded.undertow.UndertowServletWebServerFactory;
-import org.springframework.boot.web.servlet.server.ServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.annotation.DirtiesContext;
@@ -66,7 +64,7 @@ import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
         CxfRsAsyncProducerSessionTest.class,
         CxfRsAsyncProducerSessionTest.TestConfiguration.class,
         CxfAutoConfiguration.class
-    }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+    }//, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 public class CxfRsAsyncProducerSessionTest {
 
@@ -86,7 +84,7 @@ public class CxfRsAsyncProducerSessionTest {
         List<Object> serviceBeans = new ArrayList<Object>();
         serviceBeans.add(new org.apache.camel.component.cxf.jaxrs.testbean.EchoService());
         sfb.setServiceBeans(serviceBeans);
-        sfb.setAddress("/CxfRsProducerSessionTest/");
+        sfb.setAddress("http://localhost:" + port1 + "/services/CxfRsProducerSessionTest/");
         sfb.setStaticSubresourceResolution(true);
         server = sfb.create();
         server.start();
@@ -100,7 +98,7 @@ public class CxfRsAsyncProducerSessionTest {
         }
     }
     
-    //@Test
+    @Test
     public void testNoSessionProxy() {
         String response = sendMessage("direct://proxy", "World", Boolean.FALSE).getMessage().getBody(String.class);
         assertEquals("New New World", response);
@@ -108,7 +106,7 @@ public class CxfRsAsyncProducerSessionTest {
         assertEquals("New New World", response);
     }
 
-    //@Test
+    @Test
     public void testExchangeSessionProxy() {
         String response = sendMessage("direct://proxyexchange", "World", Boolean.FALSE).getMessage().getBody(String.class);
         assertEquals("Old New World", response);
@@ -116,7 +114,7 @@ public class CxfRsAsyncProducerSessionTest {
         assertEquals("Old New World", response);
     }
 
-    //@Test
+    @Test
     public void testInstanceSession() {
         String response = sendMessage("direct://proxyinstance", "World", Boolean.FALSE).getMessage().getBody(String.class);
         assertEquals("Old New World", response);
@@ -167,12 +165,7 @@ public class CxfRsAsyncProducerSessionTest {
     @Configuration
     public class TestConfiguration {
 
-        
-        @Bean
-        public ServletWebServerFactory servletWebServerFactory() {
-            return new UndertowServletWebServerFactory(port1);
-        }
-              
+       
         
         @Bean 
         public CamelEndpointFactoryBean fromEndpoint() {
@@ -182,18 +175,18 @@ public class CxfRsAsyncProducerSessionTest {
         }
         
                 
-        /*@Bean
+        @Bean
         public AbstractJAXRSFactoryBean rsClientProxy() {
             SpringJAXRSClientFactoryBean afb = new SpringJAXRSClientFactoryBean();
-            //afb.setBus(BusFactory.getDefaultBus());
+           
             afb.setAddress("http://localhost:" + port1
-                                   + "/services/CxfRsAsyncProducerTest/");
+                                   + "/services/CxfRsProducerSessionTest/");
             //afb.setServiceClass somehow cause conflict with other test, should be bus conflict
-            afb.setServiceClass(org.apache.camel.component.cxf.jaxrs.testbean.CustomerService.class);
+            afb.setServiceClass(org.apache.camel.component.cxf.jaxrs.testbean.EchoService.class);
             afb.setLoggingFeatureEnabled(true);
             
             return afb;
-        }*/
+        }
         
         @Bean
         public AbstractJAXRSFactoryBean rsClientHttp() {
@@ -218,13 +211,18 @@ public class CxfRsAsyncProducerSessionTest {
             return new RouteBuilder() {
                 @Override
                 public void configure() {
-                    //from("direct://proxy").to("cxfrs:bean:rsClientProxy");
+                    from("direct://proxy").to("cxfrs:bean:rsClientProxy")
+                        .convertBodyTo(String.class).to("cxfrs:bean:rsClientProxy");
+                    from("direct://proxyinstance").to("cxfrs:bean:rsClientProxy?cookieHandler=#instanceCookieHandler")
+                        .convertBodyTo(String.class).to("cxfrs:bean:rsClientProxy?cookieHandler=#instanceCookieHandler");
+                    from("direct://proxyexchange").to("cxfrs:bean:rsClientProxy?cookieHandler=#exchangeCookieHandler")
+                        .convertBodyTo(String.class).to("cxfrs:bean:rsClientProxy?cookieHandler=#exchangeCookieHandler");
                     from("direct://http").to("cxfrs:bean:rsClientHttp")
                         .convertBodyTo(String.class).to("cxfrs:bean:rsClientHttp");
                     from("direct://httpinstance").to("cxfrs:bean:rsClientHttp?cookieHandler=#instanceCookieHandler")
                         .convertBodyTo(String.class).to("cxfrs:bean:rsClientHttp?cookieHandler=#instanceCookieHandler");
                     from("direct://httpexchange").to("cxfrs:bean:rsClientHttp?cookieHandler=#exchangeCookieHandler")
-                    .convertBodyTo(String.class).to("cxfrs:bean:rsClientHttp?cookieHandler=#exchangeCookieHandler");
+                        .convertBodyTo(String.class).to("cxfrs:bean:rsClientHttp?cookieHandler=#exchangeCookieHandler");
                     
                 }
             };
