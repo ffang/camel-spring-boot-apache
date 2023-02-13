@@ -20,7 +20,6 @@ package org.apache.camel.component.cxf.rest.springboot;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.cxf.common.CXFTestSupport;
 import org.apache.camel.component.cxf.jaxrs.testbean.ServiceUtil;
-import org.apache.camel.component.cxf.spring.jaxrs.SpringJAXRSClientFactoryBean;
 import org.apache.camel.component.cxf.spring.jaxrs.SpringJAXRSServerFactoryBean;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
 
@@ -61,14 +60,7 @@ public class CxfRsConsumerWithBeanTest {
 
     private int port = CXFTestSupport.getPort1();
     private static final String CXT = "/CxfRsConsumerWithBeanTest";
-    private static final String CXF_RS_ENDPOINT_URI
-            = "cxfrs://" + CXT
-              + "/rest?resourceClasses=org.apache.camel.component.cxf.jaxrs.testbean.CustomerServiceResource";
-    private static final String CXF_RS_ENDPOINT_URI_2
-            = "cxfrs://" + CXT
-              + "/rest2?resourceClasses=org.apache.camel.component.cxf.jaxrs.testbean.CustomerServiceResource";
-
-    
+        
     
     @Test
     public void testPutConsumer() throws Exception {
