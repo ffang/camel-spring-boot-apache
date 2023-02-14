@@ -77,8 +77,8 @@ public class CxfRsRouterTest {
     private static final String POST_REQUEST = "<Customer><name>Jack</name></Customer>";
 
 
-    private int port = CXFTestSupport.getPort1();
-    private int backendPort = CXFTestSupport.getPort2();
+    public int port = CXFTestSupport.getPort1();
+    public int backendPort = CXFTestSupport.getPort2();
     
      
     private Server server;
