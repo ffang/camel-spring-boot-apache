@@ -83,8 +83,9 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.apache.camel</groupId>
-      <artifactId>camel-xml-jaxb-dsl</artifactId>
+      <groupId>org.apache.camel.springboot</groupId>
+      <artifactId>camel-xml-io-dsl-starter</artifactId>
+      <version>${camel-version}</version>
       <scope>test</scope>
     </dependency>
     <dependency>
@@ -108,12 +109,6 @@
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-undertow</artifactId>
       <scope>test</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.cxf</groupId>
-      <artifactId>cxf-spring-boot-starter-jaxws</artifactId>
-      <scope>test</scope>
-      <version>${cxf-version}</version>
     </dependency>
     <dependency>
       <groupId>org.apache.cxf</groupId>
@@ -156,6 +151,7 @@
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
           <rerunFailingTestsCount>0</rerunFailingTestsCount>
+          <reuseForks>false</reuseForks>
         </configuration>
       </plugin>
       <plugin>
