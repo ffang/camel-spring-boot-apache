@@ -31,7 +31,7 @@ import java.util.Map;
 
 import jakarta.activation.DataHandler;
 import jakarta.activation.DataSource;
-import javax.annotation.Resource;
+import jakarta.annotation.Resource;
 import javax.imageio.ImageIO;
 import jakarta.mail.util.ByteArrayDataSource;
 import javax.xml.namespace.QName;

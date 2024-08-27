@@ -27,7 +27,8 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.cxf.jaxws.CxfEndpoint;
 import org.apache.camel.component.cxf.spring.jaxws.CxfSpringEndpoint;
 import org.apache.camel.spring.boot.CamelAutoConfiguration;
-
+import org.apache.camel.test.infra.artemis.services.ArtemisService;
+import org.apache.camel.test.infra.artemis.services.ArtemisServiceFactory;
 
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
@@ -56,16 +57,17 @@ import org.apache.hello_world_soap_http.Greeter;
     }
 )
 public class CxfEndpointJMSConsumerTest {
-
+    @org.junit.jupiter.api.extension.RegisterExtension
+    private static ArtemisService broker = ArtemisServiceFactory.createVMService();
     private String namespace = "http://apache.org/hello_world_soap_http";
     private QName serviceName = new QName(namespace, "SOAPService");
     private QName endpointName = new QName(namespace, "SoapPort");
     // Here we just the address with JMS URI
     String address = "jms:jndi:dynamicQueues/test.cxf.jmstransport.queue"
                      + "?jndiInitialContextFactory"
-                     + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+                     + "=org.apache.activemq.artemis.jndi.ActiveMQInitialContextFactory"
                      + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL="
-                     + "vm://localhost";
+                     + broker.serviceAddress();
         
     
     
@@ -74,9 +76,9 @@ public class CxfEndpointJMSConsumerTest {
         // Here we just the address with JMS URI
         String address = "jms:jndi:dynamicQueues/test.cxf.jmstransport.queue"
                          + "?jndiInitialContextFactory"
-                         + "=org.apache.activemq.jndi.ActiveMQInitialContextFactory"
+                         + "=org.apache.activemq.artemis.jndi.ActiveMQInitialContextFactory"
                          + "&jndiConnectionFactoryName=ConnectionFactory&jndiURL="
-                         + "vm://localhost";
+                         + broker.serviceAddress();
 
         JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
         factory.setServiceClass(Greeter.class);
