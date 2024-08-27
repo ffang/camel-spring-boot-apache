@@ -61,6 +61,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.apache.camel.test.spring.junit5.CamelSpringBootTest;
 import org.apache.cxf.spring.boot.autoconfigure.CxfAutoConfiguration;
+import org.apache.cxf.spring.boot.autoconfigure.jaxws.CxfJaxwsAutoConfiguration;
 import org.apache.cxf.transport.https.httpclient.DefaultHostnameVerifier;
 
 
@@ -71,7 +72,8 @@ import org.apache.cxf.transport.https.httpclient.DefaultHostnameVerifier;
         CamelAutoConfiguration.class,
         SslGlobalTest.class,
         SslGlobalTest.TestConfiguration.class,
-        CxfAutoConfiguration.class
+        CxfAutoConfiguration.class,
+        CxfJaxwsAutoConfiguration.class
     }, webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
 public class SslGlobalTest {
