@@ -21,7 +21,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.core.Response;
 
 @Path("/echoservice/")
-public interface EchoService {
+public interface RestEchoService {
 
     @POST
     @Path("/echo/")

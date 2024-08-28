@@ -22,7 +22,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 
-public class EchoServiceImpl implements EchoService {
+public class EchoServiceImpl implements RestEchoService {
     @Context
     private HttpHeaders headers;
 
